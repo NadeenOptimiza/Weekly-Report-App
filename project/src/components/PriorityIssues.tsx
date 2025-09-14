@@ -162,8 +162,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               ...issue,
               isCompleted: newStatus === 'Completed',
               completedAt: newStatus === 'Completed' ? new Date() : undefined,
-              completedBy: newStatus === 'Completed' ? 'BU Manager' : undefined,
-              status: newStatus
+              completedBy: newStatus === 'Completed' ? 'BU Manager' : undefined
             };
           }
           return issue;

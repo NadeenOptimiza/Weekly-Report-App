@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useWeeklyReports } from '../hooks/useDatabase';
+import { supabase } from '../lib/supabase';
 import { UrgentIssue } from '../types';
 import { AlertCircle, Clock, Calendar, Building2, User, Save } from 'lucide-react';
 
@@ -162,22 +163,25 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               isCompleted: newStatus === 'Completed',
               completedAt: newStatus === 'Completed' ? new Date() : undefined,
               completedBy: newStatus === 'Completed' ? 'BU Manager' : undefined,
-              // Add a status field for tracking Noted vs Pending
               status: newStatus
             };
           }
           return issue;
         });
 
-        // Here you would call your database update function
-        // For now, we'll simulate the API call
-        console.log(`Updating issue ${issueId} to status: ${newStatus}`, {
-          reportId: reportWithIssue.id,
-          updatedUrgentIssues
-        });
-        
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Update the database with the modified urgent issues JSON
+        const { error } = await supabase
+          .from('weekly_reports')
+          .update({ 
+            urgent: JSON.stringify(updatedUrgentIssues)
+          })
+          .eq('id', parseInt(reportWithIssue.id));
+
+        if (error) {
+          throw error;
+        }
+
+        console.log(`Successfully updated issue ${issueId} to status: ${newStatus}`);
       }
       
       // Remove from pending updates after successful save
@@ -189,6 +193,8 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
       
     } catch (error) {
       console.error('Failed to update issue status:', error);
+      // Show error message to user
+      alert(`Failed to update issue status: ${error.message || 'Unknown error'}`);
     } finally {
       setSavingIssues(prev => {
         const updated = new Set(prev);

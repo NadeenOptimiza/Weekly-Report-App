@@ -60,15 +60,19 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
     reports.forEach(report => {
       if (Array.isArray(report.urgentIssues)) {
         report.urgentIssues
-          .filter(issue => issue.requiresAction && !issue.isCompleted) // Only non-completed issues requiring BU Manager action
+          .filter(issue => issue.requiresAction && (issue.status !== 'Completed' && !issue.isCompleted)) // Only non-completed issues requiring BU Manager action
           .forEach(issue => {
             const agingDays = Math.floor((Date.now() - new Date(issue.timestamp).getTime()) / (1000 * 60 * 60 * 24));
             
-            let status: 'Pending' | 'Noted' | 'Completed' = 'Pending';
-            if (issue.isCompleted) {
-              status = 'Completed';
-            } else if (issue.completedBy) {
-              status = 'Noted';
+            // Use the status field directly from the issue, with fallback for backward compatibility
+            let status: 'Pending' | 'Noted' | 'Completed' = issue.status || 'Pending';
+            if (!issue.status) {
+              // Backward compatibility: derive status from existing fields
+              if (issue.isCompleted) {
+                status = 'Completed';
+              } else if (issue.completedBy) {
+                status = 'Noted';
+              }
             }
 
             issues.push({
@@ -157,14 +161,28 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         // Update the issue in the report's urgent issues
         const updatedUrgentIssues = reportWithIssue.urgentIssues.map(issue => {
           if (issue.id === issueId) {
-            return {
+            let updatedIssue = {
               ...issue,
-              isCompleted: newStatus === 'Completed',
-              completedAt: newStatus === 'Completed' ? new Date() : undefined,
-              completedBy: newStatus === 'Completed' ? 'BU Manager' : undefined,
+              status: newStatus,
+              isCompleted: newStatus === 'Completed'
               // Add a status field for tracking Noted vs Pending
               status: newStatus
             };
+            
+            // Set completedAt and completedBy only for 'Completed' status
+            if (newStatus === 'Completed') {
+              updatedIssue.completedAt = new Date();
+              updatedIssue.completedBy = 'BU Manager';
+            } else if (newStatus === 'Noted') {
+              // For 'Noted' status, clear completion fields but keep the status
+              updatedIssue.completedAt = undefined;
+              updatedIssue.completedBy = undefined;
+            } else {
+              // For 'Pending' status, clear all completion fields
+              updatedIssue.completedAt = undefined;
+              updatedIssue.completedBy = undefined;
+            }
+            
           }
           return issue;
         });

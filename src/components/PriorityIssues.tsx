@@ -82,6 +82,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               division: report.division || 'N/A',
               reportDate: report.week,
               agingDays,
+              category: categorizeIssue(issue.description),
               status
             });
             issueCounter++;
@@ -175,7 +176,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
             };
             
             console.log('Explicitly constructed updated issue object:', updatedIssue);
-            return updatedIssue;
+            
             if (newStatus === 'Completed') {
               updatedIssue.completedAt = new Date();
               updatedIssue.completedBy = 'BU Manager';
@@ -189,16 +190,18 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               updatedIssue.completedBy = undefined;
             }
             
+            return updatedIssue;
           }
           return issue;
         });
 
         // Here you would call your database update function
         // For now, we'll simulate the API call
-        console.log('JSON string being sent to database:', jsonString);
+        const jsonString = JSON.stringify({
           reportId: reportWithIssue.id,
           updatedUrgentIssues
         });
+        console.log('JSON string being sent to database:', jsonString);
         
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000));

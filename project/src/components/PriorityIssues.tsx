@@ -336,6 +336,28 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
                 {priorityIssues.length}
               </span>
             </div>
+            <div className={`px-4 py-2 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+              <span className={`text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                Completed This Week: 
+              </span>
+              <span className={`text-lg font-bold ml-2 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                {React.useMemo(() => {
+                  const oneWeekAgo = new Date();
+                  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                  
+                  return reports.reduce((count, report) => {
+                    if (Array.isArray(report.urgentIssues)) {
+                      return count + report.urgentIssues.filter(issue => 
+                        issue.status === 'Completed' && 
+                        issue.completedAt && 
+                        new Date(issue.completedAt) >= oneWeekAgo
+                      ).length;
+                    }
+                    return count;
+                  }, 0);
+                }, [reports])}
+              </span>
+            </div>
           </div>
         </div>
 

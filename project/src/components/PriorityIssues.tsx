@@ -98,6 +98,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               division: report.division || 'N/A',
               reportDate: report.week,
               agingDays,
+              category: categorizeIssue(issue.description),
               status
             });
             issueCounter++;
@@ -339,6 +340,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
                 Priority Issues Dashboard
               </h1>
+            </div>
           </div>
         </div>
 

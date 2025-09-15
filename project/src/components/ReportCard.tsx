@@ -127,6 +127,14 @@ export function ReportCard({ report, isDarkMode }: ReportCardProps) {
                               </span>
                             </div>
                           )}
+                          {issue.status === 'Noted' && issue.completedBy && (
+                            <div className="flex items-center space-x-1">
+                              <CheckCircle className="w-3 h-3 text-blue-500" />
+                              <span className="text-xs text-blue-600 font-medium">
+                                Noted by {issue.completedBy}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <p className={`text-sm leading-relaxed transition-colors duration-300 ${

@@ -172,21 +172,24 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               description: issue.description,
               timestamp: issue.timestamp,
               requiresAction: issue.requiresAction,
-            // Explicitly construct each property of the updatedIssue object
+            // Explicitly construct ALL properties without using spread operator
             const updatedIssue = {
               id: issue.id,
               description: issue.description,
               timestamp: issue.timestamp,
               requiresAction: issue.requiresAction,
               submittedBy: issue.submittedBy,
-              status: newStatus, // Explicitly set the status field
+              status: newStatus,
               isCompleted: newStatus === 'Completed',
-              completedAt: newStatus === 'Completed' ? new Date().toISOString() : null,
-              completedBy: newStatus === 'Completed' ? 'BU Manager' : null
+              completedAt: newStatus === 'Completed' ? new Date() : (issue.completedAt || null),
+              completedBy: newStatus === 'Completed' ? 'BU Manager' : (newStatus === 'Noted' ? 'BU Manager' : null)
             };
             
             console.log('Explicitly constructed updated issue:', updatedIssue);
             console.log('Updated issue status field:', updatedIssue.status);
+            console.log('Updated issue isCompleted field:', updatedIssue.isCompleted);
+            console.log('Updated issue completedAt field:', updatedIssue.completedAt);
+            console.log('Updated issue completedBy field:', updatedIssue.completedBy);
             
             return updatedIssue;
           }
@@ -196,7 +199,10 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         console.log('Full updatedUrgentIssues array:', updatedUrgentIssues);
         const targetIssue = updatedUrgentIssues.find(i => i.id === issueId);
         console.log('Target issue in array:', targetIssue);
-        console.log('Target issue status:', targetIssue?.status);
+        console.log('Target issue status in array:', targetIssue?.status);
+        console.log('Target issue isCompleted in array:', targetIssue?.isCompleted);
+        console.log('Target issue completedAt in array:', targetIssue?.completedAt);
+        console.log('Target issue completedBy in array:', targetIssue?.completedBy);
         console.log('Full updatedUrgentIssues array (before JSON.stringify):', updatedUrgentIssues);
         const targetIssueInArray = updatedUrgentIssues.find(i => i.id === issueId);
         console.log('Target issue in array (before JSON.stringify):', targetIssueInArray);
@@ -205,6 +211,16 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         const jsonString = JSON.stringify(updatedUrgentIssues);
         console.log('JSON string being sent to database:', jsonString);
         console.log('JSON string length:', jsonString.length);
+        
+        // Parse the JSON string back to verify it contains the status field
+        try {
+          const parsedJson = JSON.parse(jsonString);
+          const parsedTargetIssue = parsedJson.find(i => i.id === issueId);
+          console.log('Parsed JSON target issue:', parsedTargetIssue);
+          console.log('Parsed JSON target issue status:', parsedTargetIssue?.status);
+        } catch (parseError) {
+          console.error('Error parsing JSON string:', parseError);
+        }
 
         // Update the database with the modified urgent issues JSON
         const { error } = await supabase

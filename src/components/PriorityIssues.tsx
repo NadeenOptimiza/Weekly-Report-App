@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useWeeklyReports } from '../hooks/useDatabase';
+import { useAuth } from '../hooks/useAuth';
 import { UrgentIssue } from '../types';
 import { AlertCircle, Clock, Calendar, Building2, User, Save } from 'lucide-react';
 
@@ -44,6 +45,7 @@ const categorizeIssue = (description: string): string => {
 
 export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
   const { reports, loading, error } = useWeeklyReports();
+  const { user, profile } = useAuth();
   const [businessUnitFilter, setBusinessUnitFilter] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'aging' | 'created' | 'businessUnit'>('aging');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');

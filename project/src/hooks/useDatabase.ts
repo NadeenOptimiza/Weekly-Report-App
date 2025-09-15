@@ -20,37 +20,55 @@ function convertToFrontendReport(db: WeeklyReportWithDetails): WeeklyReport {
   let urgentIssues: UrgentIssue[] = [];
   try {
     if (db.urgent && typeof db.urgent === 'string' && db.urgent.trim() !== '') {
-      urgentIssues = JSON.parse(db.urgent);
+      const trimmedUrgent = db.urgent.trim();
       
-      // Ensure each issue has the required properties for the new structure
-      urgentIssues = urgentIssues.map(issue => ({
-        id: issue.id || Date.now().toString() + Math.random().toString(36).substr(2, 9),
-        description: issue.description || '',
-        timestamp: issue.timestamp ? new Date(issue.timestamp) : new Date(),
-        requiresAction: issue.requiresAction || false,
-        isCompleted: issue.isCompleted === true,
-        completedAt: (issue.completedAt && !isNaN(new Date(issue.completedAt).getTime())) ? new Date(issue.completedAt) : undefined,
-        completedBy: issue.completedBy || undefined,
-        submittedBy: issue.submittedBy || 'Unknown'
-      }));
-    } else if (db.urgent && typeof db.urgent === 'string' && db.urgent.trim() !== '') {
-      // Handle legacy text format - convert to new structure
-      urgentIssues = [{
-        id: Date.now().toString(),
-        description: db.urgent,
-        timestamp: new Date(),
-        requiresAction: false,
-        isCompleted: false,
-        submittedBy: db.submitted_by || 'Unknown'
-      }];
+      // Check if it looks like a JSON array (starts with [ and ends with ])
+      if (trimmedUrgent.startsWith('[') && trimmedUrgent.endsWith(']')) {
+        try {
+          urgentIssues = JSON.parse(trimmedUrgent);
+          
+          // Ensure each issue has the required properties for the new structure
+          urgentIssues = urgentIssues.map(issue => ({
+            id: issue.id || Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            description: issue.description || '',
+            timestamp: issue.timestamp ? new Date(issue.timestamp) : new Date(),
+            requiresAction: issue.requiresAction || false,
+            isCompleted: issue.isCompleted === true,
+            completedAt: (issue.completedAt && !isNaN(new Date(issue.completedAt).getTime())) ? new Date(issue.completedAt) : undefined,
+            completedBy: issue.completedBy || undefined,
+            submittedBy: issue.submittedBy || 'Unknown'
+          }));
+        } catch (jsonError) {
+          console.warn('Failed to parse JSON array for urgent issues, treating as legacy text:', jsonError);
+          // Fall back to legacy text format
+          urgentIssues = [{
+            id: Date.now().toString(),
+            description: trimmedUrgent,
+            timestamp: new Date(),
+            requiresAction: false,
+            isCompleted: false,
+            submittedBy: db.submitted_by || 'Unknown'
+          }];
+        }
+      } else {
+        // Handle legacy text format - convert to new structure
+        urgentIssues = [{
+          id: Date.now().toString(),
+          description: trimmedUrgent,
+          timestamp: new Date(),
+          requiresAction: false,
+          isCompleted: false,
+          submittedBy: db.submitted_by || 'Unknown'
+        }];
+      }
     }
   } catch (e) {
-    console.warn('Failed to parse urgent issues JSON:', e);
-    // If JSON parsing fails but there's text content, treat as legacy format
+    console.warn('Unexpected error processing urgent issues:', e);
+    // If there's any unexpected error but there's text content, treat as legacy format
     if (db.urgent && typeof db.urgent === 'string' && db.urgent.trim() !== '') {
       urgentIssues = [{
         id: Date.now().toString(),
-        description: db.urgent,
+        description: db.urgent.trim(),
         timestamp: new Date(),
         requiresAction: false,
         isCompleted: false,

@@ -170,8 +170,13 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
             const updatedIssue = {
               id: issue.id,
               description: issue.description,
-              timestamp: issue.timestamp,
+              timestamp: issue.timestamp, // Keep as Date object here, will be stringified later
               requiresAction: issue.requiresAction,
+              submittedBy: issue.submittedBy,
+              status: newStatus, // THIS IS THE KEY FIELD
+              isCompleted: newStatus === 'Completed',
+              completedAt: newStatus === 'Completed' ? new Date() : (issue.completedAt || undefined), // Use undefined for null in JSON
+              completedBy: (newStatus === 'Completed' || newStatus === 'Noted') ? 'BU Manager' : (issue.completedBy || undefined)
               submittedBy: issue.submittedBy,
               status: newStatus,
               isCompleted: newStatus === 'Completed',

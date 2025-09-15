@@ -167,7 +167,14 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         const updatedUrgentIssues = reportWithIssue.urgentIssues.map(issue => {
           if (issue.id === issueId) {
             // Explicitly construct each property of the updatedIssue object
+            // Explicitly construct each property of the updatedIssue object
             const updatedIssue = {
+              id: issue.id,
+              description: issue.description,
+              timestamp: issue.timestamp,
+              requiresAction: issue.requiresAction,
+              submittedBy: issue.submittedBy,
+              status: newStatus, // Explicitly set the status field
               id: issue.id,
               description: issue.description,
               timestamp: issue.timestamp,
@@ -181,6 +188,8 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
             
             console.log('Explicitly constructed updated issue:', updatedIssue);
             console.log('Updated issue status field:', updatedIssue.status);
+            console.log('Explicitly constructed updated issue:', updatedIssue);
+            console.log('Updated issue status field:', updatedIssue.status);
             
             return updatedIssue;
           }
@@ -191,6 +200,10 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         const targetIssue = updatedUrgentIssues.find(i => i.id === issueId);
         console.log('Target issue in array:', targetIssue);
         console.log('Target issue status:', targetIssue?.status);
+        console.log('Full updatedUrgentIssues array (before JSON.stringify):', updatedUrgentIssues);
+        const targetIssueInArray = updatedUrgentIssues.find(i => i.id === issueId);
+        console.log('Target issue in array (before JSON.stringify):', targetIssueInArray);
+        console.log('Target issue status in array (before JSON.stringify):', targetIssueInArray?.status);
 
         const jsonString = JSON.stringify(updatedUrgentIssues);
         console.log('JSON string being sent to database:', jsonString);
@@ -213,18 +226,17 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
           .eq('id', parseInt(reportWithIssue.id))
           .single();
         
-        console.log('Database check after update:', { checkData, checkError });
         
         if (checkData && checkData.urgent) {
           console.log('Database urgent column after update:', checkData.urgent);
           console.log('Database urgent column type:', typeof checkData.urgent);
-          
           try {
             const parsedUrgent = JSON.parse(checkData.urgent);
             const targetIssue = parsedUrgent.find(issue => issue.id === issueId);
             if (targetIssue) {
               console.log('Target issue in database after update:', {
                 id: targetIssue.id,
+                status: targetIssue.status,
                 status: targetIssue.status,
                 isCompleted: targetIssue.isCompleted,
                 completedAt: targetIssue.completedAt,
@@ -234,9 +246,6 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               console.log('Target issue NOT FOUND in database after update');
             }
           } catch (parseError) {
-            console.log('Failed to parse urgent column from database:', parseError);
-          }
-        }
         
         if (error) {
           throw error;
@@ -259,7 +268,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
       console.error('Failed to update issue status:', error);
     } finally {
       setSavingIssues(prev => {
-        const updated = new Set(prev);
+      // alert(`Failed to update issue status: ${error.message || 'Unknown error'}`);
         updated.delete(issueId);
         return updated;
       });

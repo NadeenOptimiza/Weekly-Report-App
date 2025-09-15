@@ -166,19 +166,17 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         // Update the issue in the report's urgent issues
         const updatedUrgentIssues = reportWithIssue.urgentIssues.map(issue => {
           if (issue.id === issueId) {
+            // Explicitly construct the updated issue without spread operator
             const updatedIssue = {
-              id: issue.id, // Keep original ID
-              description: issue.description, // Keep original description
-              timestamp: issue.timestamp, // Keep original timestamp
-              requiresAction: issue.requiresAction, // Keep original requiresAction
-              submittedBy: issue.submittedBy, // Keep original submittedBy
-              // Explicitly set the new status and derived fields
-              status: newStatus, // Set the new status
+              id: issue.id,
+              description: issue.description,
+              timestamp: issue.timestamp,
+              requiresAction: issue.requiresAction,
+              submittedBy: issue.submittedBy,
+              status: newStatus,
               isCompleted: newStatus === 'Completed',
-              // Set completedAt to current date if 'Completed', otherwise null
-              completedAt: newStatus === 'Completed' ? new Date().toISOString() : null,
-              // Set completedBy if 'Completed' or 'Noted', otherwise null
-              completedBy: (newStatus === 'Completed' || newStatus === 'Noted') ? 'BU Manager' : null
+              completedAt: newStatus === 'Completed' ? new Date() : (issue.completedAt || null),
+              completedBy: (newStatus === 'Completed' || newStatus === 'Noted') ? 'BU Manager' : (issue.completedBy || null)
             };
             
             console.log('Explicitly constructed updated issue:', updatedIssue);
@@ -208,15 +206,11 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         console.log('JSON string being sent to database:', jsonString);
         console.log('JSON string length:', jsonString.length);
         
-        // Parse the JSON string back to verify it contains the status field
-        try {
-          const parsedJson = JSON.parse(jsonString);
-          const parsedTargetIssue = parsedJson.find(i => i.id === issueId);
-          console.log('Parsed JSON target issue:', parsedTargetIssue);
-          console.log('Parsed JSON target issue status:', parsedTargetIssue?.status);
-        } catch (parseError) {
-          console.error('Error parsing JSON string:', parseError);
-        }
+        // Verify the JSON string contains the status field
+        const parsedJson = JSON.parse(jsonString);
+        const parsedTargetIssue = parsedJson.find(i => i.id === issueId);
+        console.log('Parsed JSON target issue:', parsedTargetIssue);
+        console.log('Parsed JSON target issue status:', parsedTargetIssue?.status);
 
         // Update the database with the modified urgent issues JSON
         const { error } = await supabase

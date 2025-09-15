@@ -236,10 +236,8 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               console.log('Target issue NOT FOUND in database after update');
             }
           } catch (parseError) {
-            console.log('Failed to parse urgent column from database:', parseError);
+            console.log('Error parsing urgent JSON from database:', parseError);
           }
-        } else {
-          console.log('No checkData.urgent found after update');
         }
         
         if (error) {
@@ -261,10 +259,10 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
       
     } catch (error) {
       console.error('Failed to update issue status:', error);
-    } finally {
-      alert(`Failed to update issue status: ${error.message || 'Unknown error'}`);
+      // alert(`Failed to update issue status: ${error.message || 'Unknown error'}`);
     } finally {
       setSavingIssues(prev => {
+        const updated = new Set(prev);
         updated.delete(issueId);
         return updated;
       });

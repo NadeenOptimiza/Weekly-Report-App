@@ -162,46 +162,39 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         // Update the issue in the report's urgent issues
         const updatedUrgentIssues = reportWithIssue.urgentIssues.map(issue => {
           if (issue.id === issueId) {
-            // Explicitly construct the updated issue object to ensure all fields are present
+            // Explicitly construct the updated issue object using spread operator
             const updatedIssue = {
-              id: issue.id,
-              description: issue.description,
-              timestamp: issue.timestamp,
-              requiresAction: issue.requiresAction,
-              submittedBy: issue.submittedBy,
+              ...issue, // Spread existing properties
               status: newStatus, // Explicitly set the status field
               isCompleted: newStatus === 'Completed',
-              completedAt: newStatus === 'Completed' ? new Date() : undefined,
-              completedBy: newStatus === 'Completed' ? 'BU Manager' : undefined
+              completedAt: newStatus === 'Completed' ? new Date() : null, // Use null instead of undefined
+              completedBy: newStatus === 'Completed' ? 'BU Manager' : null // Use null instead of undefined
             };
             
-            console.log('Explicitly constructed updated issue object:', updatedIssue);
-            
-            if (newStatus === 'Completed') {
-              updatedIssue.completedAt = new Date();
-              updatedIssue.completedBy = 'BU Manager';
-            } else if (newStatus === 'Noted') {
-              // For 'Noted' status, clear completion fields but keep the status
-              updatedIssue.completedAt = undefined;
-              updatedIssue.completedBy = undefined;
-            } else {
-              // For 'Pending' status, clear all completion fields
-              updatedIssue.completedAt = undefined;
-              updatedIssue.completedBy = undefined;
-            }
+            console.log('=== UPDATED ISSUE CONSTRUCTION ===');
+            console.log('Original issue:', issue);
+            console.log('New status:', newStatus);
+            console.log('Explicitly constructed updated issue:', updatedIssue);
+            console.log('Updated issue status field:', updatedIssue.status);
+            console.log('=== END UPDATED ISSUE CONSTRUCTION ===');
             
             return updatedIssue;
           }
           return issue;
         });
 
+        console.log('=== UPDATED URGENT ISSUES ARRAY ===');
+        console.log('Full updatedUrgentIssues array:', updatedUrgentIssues);
+        console.log('Target issue in array:', updatedUrgentIssues.find(i => i.id === issueId));
+        console.log('=== END UPDATED URGENT ISSUES ARRAY ===');
+
         // Here you would call your database update function
         // For now, we'll simulate the API call
-        const jsonString = JSON.stringify({
-          reportId: reportWithIssue.id,
-          updatedUrgentIssues
-        });
+        const jsonString = JSON.stringify(updatedUrgentIssues);
+        console.log('=== JSON STRING FOR DATABASE ===');
         console.log('JSON string being sent to database:', jsonString);
+        console.log('JSON string length:', jsonString.length);
+        console.log('=== END JSON STRING FOR DATABASE ===');
         
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000));

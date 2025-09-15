@@ -170,9 +170,10 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
           if (issue.id === issueId) {
             const updatedIssue = {
               ...issue,
+              status: newStatus,
               isCompleted: newStatus === 'Completed',
-              completedAt: newStatus === 'Completed' ? new Date().toISOString() : null,
-              completedBy: newStatus === 'Completed' ? 'BU Manager' : null
+              completedAt: (newStatus === 'Completed' || newStatus === 'Noted') ? new Date().toISOString() : null,
+              completedBy: (newStatus === 'Completed' || newStatus === 'Noted') ? (profile?.full_name || user?.email || 'BU Manager') : null
             };
             console.log('Updated issue object:', updatedIssue);
             return updatedIssue;
@@ -216,6 +217,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
             if (targetIssue) {
               console.log('Target issue in database after update:', {
                 id: targetIssue.id,
+                status: targetIssue.status,
                 isCompleted: targetIssue.isCompleted,
                 completedAt: targetIssue.completedAt,
                 completedBy: targetIssue.completedBy

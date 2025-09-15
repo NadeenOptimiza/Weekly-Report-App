@@ -165,9 +165,18 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               ...issue,
               status: newStatus,
               isCompleted: newStatus === 'Completed'
-              // Add a status field for tracking Noted vs Pending
               status: newStatus
             };
+            
+            // Set completedAt and completedBy only for 'Completed' status
+            if (newStatus === 'Completed') {
+              updatedIssue.completedAt = new Date();
+              updatedIssue.completedBy = 'BU Manager';
+            } else {
+              updatedIssue.completedAt = undefined;
+              updatedIssue.completedBy = undefined;
+            }
+            
             
             // Set completedAt and completedBy only for 'Completed' status
             if (newStatus === 'Completed') {

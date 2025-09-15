@@ -161,24 +161,21 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         // Update the issue in the report's urgent issues
         const updatedUrgentIssues = reportWithIssue.urgentIssues.map(issue => {
           if (issue.id === issueId) {
-            let updatedIssue = {
-              ...issue,
-              status: newStatus,
-              isCompleted: newStatus === 'Completed'
-              status: newStatus
+            // Explicitly construct the updated issue object to ensure all fields are present
+            const updatedIssue = {
+              id: issue.id,
+              description: issue.description,
+              timestamp: issue.timestamp,
+              requiresAction: issue.requiresAction,
+              submittedBy: issue.submittedBy,
+              status: newStatus, // Explicitly set the status field
+              isCompleted: newStatus === 'Completed',
+              completedAt: newStatus === 'Completed' ? new Date() : undefined,
+              completedBy: newStatus === 'Completed' ? 'BU Manager' : undefined
             };
             
-            // Set completedAt and completedBy only for 'Completed' status
-            if (newStatus === 'Completed') {
-              updatedIssue.completedAt = new Date();
-              updatedIssue.completedBy = 'BU Manager';
-            } else {
-              updatedIssue.completedAt = undefined;
-              updatedIssue.completedBy = undefined;
-            }
-            
-            
-            // Set completedAt and completedBy only for 'Completed' status
+            console.log('Explicitly constructed updated issue object:', updatedIssue);
+            return updatedIssue;
             if (newStatus === 'Completed') {
               updatedIssue.completedAt = new Date();
               updatedIssue.completedBy = 'BU Manager';
@@ -198,7 +195,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
 
         // Here you would call your database update function
         // For now, we'll simulate the API call
-        console.log(`Updating issue ${issueId} to status: ${newStatus}`, {
+        console.log('JSON string being sent to database:', jsonString);
           reportId: reportWithIssue.id,
           updatedUrgentIssues
         });

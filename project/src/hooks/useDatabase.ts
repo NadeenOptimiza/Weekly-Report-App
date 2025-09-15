@@ -28,8 +28,8 @@ function convertToFrontendReport(db: WeeklyReportWithDetails): WeeklyReport {
         description: issue.description || '',
         timestamp: issue.timestamp ? new Date(issue.timestamp) : new Date(),
         requiresAction: issue.requiresAction || false,
-        isCompleted: issue.isCompleted || false,
-        completedAt: issue.completedAt ? new Date(issue.completedAt) : undefined,
+        isCompleted: issue.isCompleted === true,
+        completedAt: (issue.completedAt && !isNaN(new Date(issue.completedAt).getTime())) ? new Date(issue.completedAt) : undefined,
         completedBy: issue.completedBy || undefined,
         submittedBy: issue.submittedBy || 'Unknown'
       }));

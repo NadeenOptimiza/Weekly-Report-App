@@ -166,29 +166,26 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         // Update the issue in the report's urgent issues
         const updatedUrgentIssues = reportWithIssue.urgentIssues.map(issue => {
           if (issue.id === issueId) {
-            // Explicitly construct the updated issue without spread operator
+            // Explicitly construct the updated issue - NO SPREAD OPERATOR
             const updatedIssue = {
               id: issue.id,
               description: issue.description,
-              timestamp: issue.timestamp, // Keep as Date object here, will be stringified later
+              timestamp: issue.timestamp,
               requiresAction: issue.requiresAction,
               submittedBy: issue.submittedBy,
-              status: newStatus, // THIS IS THE KEY FIELD
-              isCompleted: newStatus === 'Completed',
-              completedAt: newStatus === 'Completed' ? new Date() : (issue.completedAt || undefined), // Use undefined for null in JSON
-              completedBy: (newStatus === 'Completed' || newStatus === 'Noted') ? 'BU Manager' : (issue.completedBy || undefined)
-              submittedBy: issue.submittedBy,
-              status: newStatus,
+              status: newStatus, // CRITICAL: This must be included
               isCompleted: newStatus === 'Completed',
               completedAt: newStatus === 'Completed' ? new Date() : (issue.completedAt || null),
               completedBy: (newStatus === 'Completed' || newStatus === 'Noted') ? 'BU Manager' : (issue.completedBy || null)
             };
             
-            console.log('Explicitly constructed updated issue:', updatedIssue);
-            console.log('Updated issue status field:', updatedIssue.status);
-            console.log('Updated issue isCompleted field:', updatedIssue.isCompleted);
-            console.log('Updated issue completedAt field:', updatedIssue.completedAt);
-            console.log('Updated issue completedBy field:', updatedIssue.completedBy);
+            console.log('Explicitly constructed updated issue:');
+            console.log('- ID:', updatedIssue.id);
+            console.log('- Status:', updatedIssue.status);
+            console.log('- IsCompleted:', updatedIssue.isCompleted);
+            console.log('- CompletedAt:', updatedIssue.completedAt);
+            console.log('- CompletedBy:', updatedIssue.completedBy);
+            console.log('- Full object:', updatedIssue);
             
             return updatedIssue;
           }
@@ -196,16 +193,9 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         });
 
         console.log('Full updatedUrgentIssues array:', updatedUrgentIssues);
-        const targetIssue = updatedUrgentIssues.find(i => i.id === issueId);
-        console.log('Target issue in array:', targetIssue);
-        console.log('Target issue status in array:', targetIssue?.status);
-        console.log('Target issue isCompleted in array:', targetIssue?.isCompleted);
-        console.log('Target issue completedAt in array:', targetIssue?.completedAt);
-        console.log('Target issue completedBy in array:', targetIssue?.completedBy);
-        console.log('Full updatedUrgentIssues array (before JSON.stringify):', updatedUrgentIssues);
         const targetIssueInArray = updatedUrgentIssues.find(i => i.id === issueId);
-        console.log('Target issue in array (before JSON.stringify):', targetIssueInArray);
-        console.log('Target issue status in array (before JSON.stringify):', targetIssueInArray?.status);
+        console.log('Target issue in array before JSON.stringify:', targetIssueInArray);
+        console.log('Target issue status before JSON.stringify:', targetIssueInArray?.status);
 
         const jsonString = JSON.stringify(updatedUrgentIssues);
         console.log('JSON string being sent to database:', jsonString);
@@ -214,8 +204,14 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         // Verify the JSON string contains the status field
         const parsedJson = JSON.parse(jsonString);
         const parsedTargetIssue = parsedJson.find(i => i.id === issueId);
-        console.log('Parsed JSON target issue:', parsedTargetIssue);
-        console.log('Parsed JSON target issue status:', parsedTargetIssue?.status);
+        console.log('VERIFICATION - Parsed JSON target issue:', parsedTargetIssue);
+        console.log('VERIFICATION - Parsed JSON target issue status:', parsedTargetIssue?.status);
+        
+        if (!parsedTargetIssue?.status) {
+          console.error('ERROR: Status field is missing from JSON string!');
+        } else {
+          console.log('SUCCESS: Status field is present in JSON string:', parsedTargetIssue.status);
+        }
 
         // Update the database with the modified urgent issues JSON
         const { error } = await supabase
@@ -226,36 +222,6 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
           .eq('id', parseInt(reportWithIssue.id));
 
         console.log('Supabase update response - error:', error);
-        
-        // Let's also check what the database actually contains after the update
-        const { data: checkData, error: checkError } = await supabase
-          .from('weekly_reports')
-          .select('id, urgent')
-          .eq('id', parseInt(reportWithIssue.id))
-          .single();
-        
-        
-        if (checkData && checkData.urgent) {
-          console.log('Database urgent column after update:', checkData.urgent);
-          console.log('Database urgent column type:', typeof checkData.urgent);
-          try {
-            const parsedUrgent = JSON.parse(checkData.urgent);
-            const targetIssue = parsedUrgent.find(issue => issue.id === issueId);
-            if (targetIssue) {
-              console.log('Target issue in database after update:', {
-                id: targetIssue.id,
-                status: targetIssue.status,
-                isCompleted: targetIssue.isCompleted,
-                completedAt: targetIssue.completedAt,
-                completedBy: targetIssue.completedBy
-              });
-            } else {
-              console.log('Target issue NOT FOUND in database after update');
-            }
-          } catch (parseError) {
-            console.log('Error parsing urgent JSON from database:', parseError);
-          }
-        }
         
         if (error) {
           throw error;
@@ -276,7 +242,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
       
     } catch (error) {
       console.error('Failed to update issue status:', error);
-      // alert(`Failed to update issue status: ${error.message || 'Unknown error'}`);
+      alert(`Failed to update issue status: ${error.message || 'Unknown error'}`);
     } finally {
       setSavingIssues(prev => {
         const updated = new Set(prev);

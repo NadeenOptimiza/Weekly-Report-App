@@ -524,11 +524,11 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
                           {statusUpdates[issue.id] || issue.status}
                         </span>
                       </div>
-                      {/* Show completion details if completed */}
-                      {((statusUpdates[issue.id] || issue.status) === 'Completed') && (
+                      {/* Show completion/noted details if completed or noted */}
+                      {(((statusUpdates[issue.id] || issue.status) === 'Completed') || ((statusUpdates[issue.id] || issue.status) === 'Noted')) && (
                         <div className={`text-xs mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                          Completed by {issue.completedBy || (profile?.full_name || user?.email || 'BU Manager')}<br/>
-                          {issue.completedAt?.toLocaleDateString() || ''}
+                          {((statusUpdates[issue.id] || issue.status) === 'Completed') ? 'Completed' : 'Noted'} by {issue.completedBy || (profile?.full_name || user?.email || 'BU Manager')}<br/>
+                          {issue.completedAt ? new Date(issue.completedAt).toLocaleDateString() : ''}
                         </div>
                       )}
                     </td>

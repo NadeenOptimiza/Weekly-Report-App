@@ -146,11 +146,10 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
   };
 
   const handleSaveStatus = async (issueId: string) => {
-    // CRITICAL: Ensure newStatus is correctly captured from the UI state
     const newStatus = statusUpdates[issueId];
     if (!newStatus) return;
 
-    console.log('=== SAVE STATUS DEBUG START ===');
+    console.log('=== SAVE STATUS DEBUG ===');
     console.log('Issue ID:', issueId);
     console.log('New Status:', newStatus);
     
@@ -163,70 +162,22 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         report.urgentIssues.some(issue => issue.id === issueId)
       );
       
-      if (reportWithIssue) {
-        // Update the issue in the report's urgent issues
-        const updatedUrgentIssues = reportWithIssue.urgentIssues.map(issue => {
-          if (issue.id === issueId) {
-            const updatedIssue = {
-              id: issue.id,
-              description: issue.description,
-              timestamp: issue.timestamp,
-              requiresAction: issue.requiresAction,
-              submittedBy: issue.submittedBy,
-              status: newStatus, // CRITICAL: Explicitly set the status based on the newStatus from the UI
-              isCompleted: newStatus === 'Completed',
-              completedAt: newStatus === 'Completed' ? new Date() : undefined,
-              completedBy: (newStatus === 'Completed' || newStatus === 'Noted') ? 'BU Manager' : undefined
-            };
-            
+      console.log('Found report with issue:', reportWithIssue ? {
+        id: reportWithIssue.id,
+        businessUnit: reportWithIssue.businessUnit,
+        division: reportWithIssue.division,
+        urgentIssuesCount: reportWithIssue.urgentIssues.length
+      } : 'NOT FOUND');
+
             console.log('DEBUG: Inside map - Constructed updatedIssue:', updatedIssue);
             console.log('DEBUG: Inside map - updatedIssue.status:', updatedIssue.status);
-
-            // Ensure the timestamp is a Date object for consistency, but it will be stringified to ISO string
-            // This line is already present and correct.
-            updatedIssue.timestamp = new Date(updatedIssue.timestamp);
+              completedAt: newStatus === 'Completed' ? new Date() : undefined,
+            // Ensure the timestamp is a Date object for consistency
+            if (updatedIssue.timestamp) {
+              updatedIssue.timestamp = new Date(updatedIssue.timestamp);
+            }
             
             return updatedIssue;
-          }
-          console.log('DEBUG: Inside map - Unchanged issue:', issue);
-          console.log('DEBUG: Inside map - Unchanged issue.status:', issue.status);
-          return issue;
-        });
-
-        console.log('DEBUG: After map - updatedUrgentIssues array:', updatedUrgentIssues);
-        const targetIssueInArray = updatedUrgentIssues.find(i => i.id === issueId);
-        console.log('DEBUG: After map - Target issue found in array:', targetIssueInArray);
-        console.log('DEBUG: After map - Target issue status in array:', targetIssueInArray?.status);
-
-        const jsonString = JSON.stringify(updatedUrgentIssues);
-        console.log('DEBUG: JSON string being sent to database:', jsonString);
-        console.log('DEBUG: JSON string length:', jsonString.length);
-
-        // Verify the JSON string contains the status field
-        const parsedJson = JSON.parse(jsonString);
-        const parsedTargetIssue = parsedJson.find(i => i.id === issueId);
-        console.log('DEBUG: VERIFICATION - Parsed JSON target issue:', parsedTargetIssue);
-        console.log('DEBUG: VERIFICATION - Parsed JSON target issue status:', parsedTargetIssue?.status);
-
-        if (!parsedTargetIssue?.status) {
-          console.error('ERROR: Status field is missing from JSON string!');
-          alert('Error: Status field was not included in the JSON string sent to the database.');
-          throw new Error('Status field missing from JSON payload.');
-        } else {
-          console.log('SUCCESS: Status field is present in JSON string:', parsedTargetIssue.status);
-          alert(`Success: Status field is present in JSON string: ${parsedTargetIssue.status}`);
-        }
-
-        // Update the database with the modified urgent issues JSON
-        const { error } = await supabase
-          .from('weekly_reports')
-          .update({ 
-            urgent: jsonString
-          })
-          .eq('id', parseInt(reportWithIssue.id));
-
-        console.log('Supabase update response - error:', error ? error.message : 'No error');
-        
         if (error) {
           throw error;
         }

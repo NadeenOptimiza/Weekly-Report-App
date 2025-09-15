@@ -145,6 +145,9 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
     const newStatus = statusUpdates[issueId];
     if (!newStatus) return;
 
+    console.log('=== SAVE STATUS DEBUG ===');
+    console.log('Issue ID:', issueId);
+    console.log('New Status:', newStatus);
     setSavingIssues(prev => new Set(prev).add(issueId));
     
     try {
@@ -154,20 +157,34 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         report.urgentIssues.some(issue => issue.id === issueId)
       );
       
+      console.log('Found report with issue:', reportWithIssue ? {
+        id: reportWithIssue.id,
+        businessUnit: reportWithIssue.businessUnit,
+        division: reportWithIssue.division,
+        urgentIssuesCount: reportWithIssue.urgentIssues.length
+      } : 'NOT FOUND');
+
       if (reportWithIssue) {
         // Update the issue in the report's urgent issues
         const updatedUrgentIssues = reportWithIssue.urgentIssues.map(issue => {
           if (issue.id === issueId) {
-            return {
+            const updatedIssue = {
               ...issue,
               isCompleted: newStatus === 'Completed',
               completedAt: newStatus === 'Completed' ? new Date().toISOString() : null,
               completedBy: newStatus === 'Completed' ? 'BU Manager' : null
             };
+            console.log('Updated issue object:', updatedIssue);
+            return updatedIssue;
           }
           return issue;
         });
 
+        console.log('Updated urgent issues array:', updatedUrgentIssues);
+        const jsonString = JSON.stringify(updatedUrgentIssues);
+        console.log('JSON string to save:', jsonString);
+        console.log('Report ID for update:', reportWithIssue.id);
+        console.log('Report ID type:', typeof reportWithIssue.id);
         // Update the database with the modified urgent issues JSON
         const { error } = await supabase
           .from('weekly_reports')
@@ -176,6 +193,16 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
           })
           .eq('id', parseInt(reportWithIssue.id));
 
+        console.log('Supabase update response - error:', error);
+        
+        // Let's also check what the database actually contains after the update
+        const { data: checkData, error: checkError } = await supabase
+          .from('weekly_reports')
+          .select('id, urgent')
+          .eq('id', parseInt(reportWithIssue.id))
+          .single();
+        
+        console.log('Database check after update:', { checkData, checkError });
         if (error) {
           throw error;
         }
@@ -195,6 +222,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
       
     } catch (error) {
       console.error('Failed to update issue status:', error);
+      console.log('Full error object:', JSON.stringify(error, null, 2));
       // Show error message to user
       alert(`Failed to update issue status: ${error.message || 'Unknown error'}`);
     } finally {
@@ -203,6 +231,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         updated.delete(issueId);
         return updated;
       });
+      console.log('=== END SAVE STATUS DEBUG ===');
     }
   };
 

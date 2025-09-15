@@ -499,7 +499,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
                       {/* Show completion details if completed */}
                       {((statusUpdates[issue.id] || issue.status) === 'Completed') && (
                         <div className={`text-xs mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                          Completed by BU Manager<br/>
+                          Completed by {issue.completedBy || (profile?.full_name || user?.email || 'BU Manager')}<br/>
                           {issue.completedAt?.toLocaleDateString() || ''}
                         </div>
                       )}

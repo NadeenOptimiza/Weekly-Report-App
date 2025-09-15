@@ -166,17 +166,19 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         // Update the issue in the report's urgent issues
         const updatedUrgentIssues = reportWithIssue.urgentIssues.map(issue => {
           if (issue.id === issueId) {
-            // Explicitly construct each property of the updatedIssue object
             const updatedIssue = {
-              id: issue.id,
-              description: issue.description,
-              timestamp: issue.timestamp,
-              requiresAction: issue.requiresAction,
-              submittedBy: issue.submittedBy,
-              status: newStatus,
+              id: issue.id, // Keep original ID
+              description: issue.description, // Keep original description
+              timestamp: issue.timestamp, // Keep original timestamp
+              requiresAction: issue.requiresAction, // Keep original requiresAction
+              submittedBy: issue.submittedBy, // Keep original submittedBy
+              // Explicitly set the new status and derived fields
+              status: newStatus, // Set the new status
               isCompleted: newStatus === 'Completed',
-              completedAt: newStatus === 'Completed' ? new Date() : (issue.completedAt || null),
-              completedBy: newStatus === 'Completed' ? 'BU Manager' : (newStatus === 'Noted' ? 'BU Manager' : null)
+              // Set completedAt to current date if 'Completed', otherwise null
+              completedAt: newStatus === 'Completed' ? new Date().toISOString() : null,
+              // Set completedBy if 'Completed' or 'Noted', otherwise null
+              completedBy: (newStatus === 'Completed' || newStatus === 'Noted') ? 'BU Manager' : null
             };
             
             console.log('Explicitly constructed updated issue:', updatedIssue);

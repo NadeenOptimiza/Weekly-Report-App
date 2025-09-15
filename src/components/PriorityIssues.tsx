@@ -167,59 +167,46 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         // Update the issue in the report's urgent issues
         const updatedUrgentIssues = reportWithIssue.urgentIssues.map(issue => {
           if (issue.id === issueId) {
-            // Explicitly construct the updated issue to ensure all fields, especially 'status', are present.
-            // This avoids issues where 'status' might be missing from older data or if spread operator
-            // doesn't correctly merge new properties.
             const updatedIssue = {
               id: issue.id,
               description: issue.description,
               timestamp: issue.timestamp,
               requiresAction: issue.requiresAction,
               submittedBy: issue.submittedBy,
-              // CRITICAL: Explicitly set the status based on the newStatus from the UI
-              status: newStatus,
-              // isCompleted is derived from the newStatus
+              status: newStatus, // CRITICAL: Explicitly set the status based on the newStatus from the UI
               isCompleted: newStatus === 'Completed',
-              // completedAt is set only if the status becomes 'Completed'
-              completedAt: newStatus === 'Completed' ? new Date() : undefined, // Use undefined for optional fields
-              // completedBy is set if status is 'Completed' or 'Noted'
-              completedBy: (newStatus === 'Completed' || newStatus === 'Noted') ? 'BU Manager' : undefined // Use undefined for optional fields
+              completedAt: newStatus === 'Completed' ? new Date() : undefined,
+              completedBy: (newStatus === 'Completed' || newStatus === 'Noted') ? 'BU Manager' : undefined
             };
             
-            console.log('Explicitly constructed updated issue:');
-            console.log('- ID:', updatedIssue.id);
-            console.log('- Description:', updatedIssue.description);
-            console.log('- Timestamp:', updatedIssue.timestamp);
-            console.log('- Requires Action:', updatedIssue.requiresAction);
-            console.log('- Submitted By:', updatedIssue.submittedBy);
-            console.log('- Status:', updatedIssue.status);
-            console.log('- IsCompleted:', updatedIssue.isCompleted);
-            console.log('- CompletedAt:', updatedIssue.completedAt);
-            console.log('- CompletedBy:', updatedIssue.completedBy);
-            console.log('- Full object:', updatedIssue);
+            console.log('DEBUG: Inside map - Constructed updatedIssue:', updatedIssue);
+            console.log('DEBUG: Inside map - updatedIssue.status:', updatedIssue.status);
 
             // Ensure the timestamp is a Date object for consistency, but it will be stringified to ISO string
+            // This line is already present and correct.
             updatedIssue.timestamp = new Date(updatedIssue.timestamp);
             
             return updatedIssue;
           }
+          console.log('DEBUG: Inside map - Unchanged issue:', issue);
+          console.log('DEBUG: Inside map - Unchanged issue.status:', issue.status);
           return issue;
         });
 
-        console.log('Full updatedUrgentIssues array:', updatedUrgentIssues);
+        console.log('DEBUG: After map - updatedUrgentIssues array:', updatedUrgentIssues);
         const targetIssueInArray = updatedUrgentIssues.find(i => i.id === issueId);
-        console.log('Target issue in array before JSON.stringify:', targetIssueInArray);
-        console.log('Target issue status before JSON.stringify:', targetIssueInArray?.status);
+        console.log('DEBUG: After map - Target issue found in array:', targetIssueInArray);
+        console.log('DEBUG: After map - Target issue status in array:', targetIssueInArray?.status);
 
         const jsonString = JSON.stringify(updatedUrgentIssues);
-        console.log('JSON string being sent to database:', jsonString);
-        console.log('JSON string length:', jsonString.length);
+        console.log('DEBUG: JSON string being sent to database:', jsonString);
+        console.log('DEBUG: JSON string length:', jsonString.length);
 
         // Verify the JSON string contains the status field
         const parsedJson = JSON.parse(jsonString);
         const parsedTargetIssue = parsedJson.find(i => i.id === issueId);
-        console.log('VERIFICATION - Parsed JSON target issue:', parsedTargetIssue);
-        console.log('VERIFICATION - Parsed JSON target issue status:', parsedTargetIssue?.status);
+        console.log('DEBUG: VERIFICATION - Parsed JSON target issue:', parsedTargetIssue);
+        console.log('DEBUG: VERIFICATION - Parsed JSON target issue status:', parsedTargetIssue?.status);
 
         if (!parsedTargetIssue?.status) {
           console.error('ERROR: Status field is missing from JSON string!');

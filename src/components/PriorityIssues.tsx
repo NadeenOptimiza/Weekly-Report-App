@@ -149,6 +149,10 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
     const newStatus = statusUpdates[issueId];
     if (!newStatus) return;
 
+    console.log('=== SAVE STATUS DEBUG START ===');
+    console.log('Issue ID:', issueId);
+    console.log('New Status:', newStatus);
+    
     setSavingIssues(prev => new Set(prev).add(issueId));
     
     try {
@@ -162,42 +166,86 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         // Update the issue in the report's urgent issues
         const updatedUrgentIssues = reportWithIssue.urgentIssues.map(issue => {
           if (issue.id === issueId) {
-            // Explicitly construct the updated issue object using spread operator
+            // Explicitly construct each property of the updatedIssue object
             const updatedIssue = {
-              ...issue, // Spread existing properties
+              id: issue.id,
+              description: issue.description,
+              timestamp: issue.timestamp,
+              requiresAction: issue.requiresAction,
+              submittedBy: issue.submittedBy,
               status: newStatus, // Explicitly set the status field
               isCompleted: newStatus === 'Completed',
-              completedAt: newStatus === 'Completed' ? new Date() : null, // Use null instead of undefined
-              completedBy: newStatus === 'Completed' ? 'BU Manager' : null // Use null instead of undefined
+              completedAt: newStatus === 'Completed' ? new Date().toISOString() : null,
+              completedBy: newStatus === 'Completed' ? 'BU Manager' : null
             };
             
-            console.log('=== UPDATED ISSUE CONSTRUCTION ===');
-            console.log('Original issue:', issue);
-            console.log('New status:', newStatus);
             console.log('Explicitly constructed updated issue:', updatedIssue);
             console.log('Updated issue status field:', updatedIssue.status);
-            console.log('=== END UPDATED ISSUE CONSTRUCTION ===');
             
             return updatedIssue;
           }
           return issue;
         });
 
-        console.log('=== UPDATED URGENT ISSUES ARRAY ===');
         console.log('Full updatedUrgentIssues array:', updatedUrgentIssues);
-        console.log('Target issue in array:', updatedUrgentIssues.find(i => i.id === issueId));
-        console.log('=== END UPDATED URGENT ISSUES ARRAY ===');
+        const targetIssue = updatedUrgentIssues.find(i => i.id === issueId);
+        console.log('Target issue in array:', targetIssue);
+        console.log('Target issue status:', targetIssue?.status);
 
-        // Here you would call your database update function
-        // For now, we'll simulate the API call
         const jsonString = JSON.stringify(updatedUrgentIssues);
-        console.log('=== JSON STRING FOR DATABASE ===');
         console.log('JSON string being sent to database:', jsonString);
         console.log('JSON string length:', jsonString.length);
-        console.log('=== END JSON STRING FOR DATABASE ===');
+
+        // Update the database with the modified urgent issues JSON
+        const { error } = await supabase
+          .from('weekly_reports')
+          .update({ 
+            urgent: jsonString
+          })
+          .eq('id', parseInt(reportWithIssue.id));
+
+        console.log('Supabase update response - error:', error);
         
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Let's also check what the database actually contains after the update
+        const { data: checkData, error: checkError } = await supabase
+          .from('weekly_reports')
+          .select('id, urgent')
+          .eq('id', parseInt(reportWithIssue.id))
+          .single();
+        
+        console.log('Database check after update:', { checkData, checkError });
+        
+        if (checkData && checkData.urgent) {
+          console.log('Database urgent column after update:', checkData.urgent);
+          console.log('Database urgent column type:', typeof checkData.urgent);
+          
+          try {
+            const parsedUrgent = JSON.parse(checkData.urgent);
+            const targetIssue = parsedUrgent.find(issue => issue.id === issueId);
+            if (targetIssue) {
+              console.log('Target issue in database after update:', {
+                id: targetIssue.id,
+                status: targetIssue.status,
+                isCompleted: targetIssue.isCompleted,
+                completedAt: targetIssue.completedAt,
+                completedBy: targetIssue.completedBy
+              });
+            } else {
+              console.log('Target issue NOT FOUND in database after update');
+            }
+          } catch (parseError) {
+            console.log('Failed to parse urgent column from database:', parseError);
+          }
+        }
+        
+        if (error) {
+          throw error;
+        }
+
+        console.log(`Successfully updated issue ${issueId} to status: ${newStatus}`);
+        
+        // Refetch the data to update the UI
+        refetch();
       }
       
       // Remove from pending updates after successful save
@@ -215,6 +263,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         updated.delete(issueId);
         return updated;
       });
+      console.log('=== END SAVE STATUS DEBUG ===');
     }
   };
 

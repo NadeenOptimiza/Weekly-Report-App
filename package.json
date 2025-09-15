@@ -1,12 +1,13 @@
-@@ .. @@
-   "scripts": {
--    "dev": "vite --port $PORT --host",
--    "build": "vite build",
--    "lint": "eslint .",
--    "preview": "vite preview"
-+    "dev": "npm --prefix project run dev -- --port $PORT --host",
-+    "build": "npm --prefix project run build",
-+    "lint": "npm --prefix project run lint",
-+    "preview": "npm --prefix project run preview",
-+    "install": "npm --prefix project install"
-   },
+{
+  "name": "weekly-reports-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm --prefix project run dev -- --port $PORT --host",
+    "build": "npm --prefix project run build",
+    "lint": "npm --prefix project run lint",
+    "preview": "npm --prefix project run preview",
+    "install": "npm --prefix project install"
+  }
+}

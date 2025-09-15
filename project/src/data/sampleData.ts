@@ -58,6 +58,7 @@ export const sampleReports: WeeklyReport[] = [
         timestamp: new Date('2025-06-27T09:00:00'),
         requiresAction: true,
         isCompleted: false,
+        status: 'Pending',
         submittedBy: 'Jennifer Davis'
       }
     ] as UrgentIssue[],
@@ -79,6 +80,7 @@ export const sampleReports: WeeklyReport[] = [
         timestamp: new Date('2025-06-25T14:30:00'),
         requiresAction: true,
         isCompleted: false,
+        status: 'Pending',
         submittedBy: 'Alex Rodriguez'
       }
     ] as UrgentIssue[],
@@ -100,6 +102,7 @@ export const sampleReports: WeeklyReport[] = [
         timestamp: new Date('2025-06-24T08:15:00'),
         requiresAction: true,
         isCompleted: false,
+        status: 'Pending',
         submittedBy: 'Sarah Johnson'
       }
     ] as UrgentIssue[],
@@ -121,6 +124,7 @@ export const sampleReports: WeeklyReport[] = [
         timestamp: new Date('2025-06-27T13:20:00'),
         requiresAction: false,
         isCompleted: false,
+        status: 'Pending',
         submittedBy: 'Mike Chen'
       }
     ] as UrgentIssue[],
@@ -143,6 +147,7 @@ export const sampleReports: WeeklyReport[] = [
         timestamp: new Date('2025-07-04T10:00:00'),
         requiresAction: true,
         isCompleted: false,
+        status: 'Pending',
         submittedBy: 'Robert Kim'
       }
     ] as UrgentIssue[],
@@ -164,6 +169,7 @@ export const sampleReports: WeeklyReport[] = [
         timestamp: new Date('2025-07-02T15:30:00'),
         requiresAction: true,
         isCompleted: false,
+        status: 'Pending',
         submittedBy: 'Maria Santos'
       }
     ] as UrgentIssue[],
@@ -186,6 +192,7 @@ export const sampleReports: WeeklyReport[] = [
         timestamp: new Date('2025-07-11T08:30:00'),
         requiresAction: true,
         isCompleted: false,
+        status: 'Pending',
         submittedBy: 'Ahmed Hassan'
       }
     ] as UrgentIssue[],
@@ -208,6 +215,7 @@ export const sampleReports: WeeklyReport[] = [
         timestamp: new Date('2025-07-18T13:15:00'),
         requiresAction: true,
         isCompleted: false,
+        status: 'Pending',
         submittedBy: 'Colonel Smith'
       }
     ] as UrgentIssue[],

@@ -34,6 +34,7 @@ function convertToFrontendReport(db: WeeklyReportWithDetails): WeeklyReport {
             timestamp: issue.timestamp ? new Date(issue.timestamp) : new Date(),
             requiresAction: issue.requiresAction || false,
             isCompleted: issue.isCompleted === true,
+            status: issue.status || (issue.isCompleted ? 'Completed' : (issue.completedBy ? 'Noted' : 'Pending')),
             completedAt: (issue.completedAt && !isNaN(new Date(issue.completedAt).getTime())) ? new Date(issue.completedAt) : undefined,
             completedBy: issue.completedBy || undefined,
             submittedBy: issue.submittedBy || 'Unknown'
@@ -58,6 +59,7 @@ function convertToFrontendReport(db: WeeklyReportWithDetails): WeeklyReport {
           timestamp: new Date(),
           requiresAction: false,
           isCompleted: false,
+          status: 'Pending',
           submittedBy: db.submitted_by || 'Unknown'
         }];
       }
@@ -72,6 +74,7 @@ function convertToFrontendReport(db: WeeklyReportWithDetails): WeeklyReport {
         timestamp: new Date(),
         requiresAction: false,
         isCompleted: false,
+        status: 'Pending',
         submittedBy: db.submitted_by || 'Unknown'
       }];
     } else {

@@ -82,6 +82,7 @@ export function ReportForm({ onSubmit, onCancel, isDarkMode }: ReportFormProps) 
       timestamp: new Date(),
       requiresAction: newIssueRequiresAction,
       isCompleted: false,
+      status: 'Pending',
       submittedBy: submittedBy
     };
     

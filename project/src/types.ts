@@ -19,6 +19,7 @@ export interface UrgentIssue {
   timestamp: Date;
   requiresAction: boolean;
   isCompleted: boolean;
+  status: 'Pending' | 'Noted' | 'Completed';
   completedAt?: Date;
   completedBy?: string;
   submittedBy: string;

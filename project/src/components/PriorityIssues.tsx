@@ -203,6 +203,32 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
           .single();
         
         console.log('Database check after update:', { checkData, checkError });
+        
+        // Explicitly log the urgent column content from the database
+        if (checkData && checkData.urgent) {
+          console.log('Database urgent column after update:', checkData.urgent);
+          console.log('Database urgent column type:', typeof checkData.urgent);
+          
+          // Try to parse and show the isCompleted status for our specific issue
+          try {
+            const parsedUrgent = JSON.parse(checkData.urgent);
+            const targetIssue = parsedUrgent.find(issue => issue.id === issueId);
+            if (targetIssue) {
+              console.log('Target issue in database after update:', {
+                id: targetIssue.id,
+                isCompleted: targetIssue.isCompleted,
+                completedAt: targetIssue.completedAt,
+                completedBy: targetIssue.completedBy
+              });
+            } else {
+              console.log('Target issue NOT FOUND in database after update');
+            }
+          } catch (parseError) {
+            console.log('Failed to parse urgent column from database:', parseError);
+          }
+        } else {
+          console.log('No checkData.urgent found after update');
+        }
         if (error) {
           throw error;
         }

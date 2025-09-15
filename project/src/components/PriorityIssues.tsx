@@ -44,7 +44,7 @@ const categorizeIssue = (description: string): string => {
 };
 
 export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
-  const { reports, loading, error } = useWeeklyReports();
+  const { reports, loading, error, refetch } = useWeeklyReports();
   const [businessUnitFilter, setBusinessUnitFilter] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'aging' | 'created' | 'businessUnit'>('aging');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -181,6 +181,9 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         }
 
         console.log(`Successfully updated issue ${issueId} to status: ${newStatus}`);
+        
+        // Refetch the data to update the UI
+        refetch();
       }
       
       // Remove from pending updates after successful save

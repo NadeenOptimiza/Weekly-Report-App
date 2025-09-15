@@ -81,7 +81,12 @@ export function useWeeklyReports(selectedWeek?: string) {
   const [reports, setReports] = useState<WeeklyReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
   const { loading: authLoading, user } = useAuth();
+
+  const refetch = () => {
+    setRefetchTrigger(prev => prev + 1);
+  };
 
   useEffect(() => {
     // Wait for auth to be ready
@@ -101,9 +106,9 @@ export function useWeeklyReports(selectedWeek?: string) {
         setReports([]);
       } finally { setLoading(false); }
     })();
-  }, [selectedWeek, authLoading, user]);
+  }, [selectedWeek, authLoading, user, refetchTrigger]);
 
-  return { reports, loading, error };
+  return { reports, loading, error, refetch };
 }
 
 export function useBusinessUnits() {

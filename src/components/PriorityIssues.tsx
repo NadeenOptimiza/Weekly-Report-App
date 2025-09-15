@@ -85,9 +85,73 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               category: categorizeIssue(issue.description),
               status
             });
+            issueCounter++;
+          });
+      }
+    });
 
     return issues;
   }, [reports]);
+
+  // Get unique business units for filter
+  const businessUnits = React.useMemo(() => {
+    return Array.from(new Set(priorityIssues.map(issue => issue.businessUnit))).sort();
+  }, [priorityIssues]);
+
+  // Filter and sort issues
+  const filteredIssues = React.useMemo(() => {
+    let filtered = priorityIssues;
+
+    // Apply business unit filter
+    if (businessUnitFilter !== 'All') {
+      filtered = filtered.filter(issue => issue.businessUnit === businessUnitFilter);
+    }
+
+    // Sort issues
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'aging':
+          comparison = a.agingDays - b.agingDays;
+          break;
+        case 'created':
+          comparison = new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+          break;
+        case 'businessUnit':
+          comparison = a.businessUnit.localeCompare(b.businessUnit);
+          break;
+      }
+
+      return sortOrder === 'desc' ? -comparison : comparison;
+    });
+
+    return filtered;
+  }, [priorityIssues, businessUnitFilter, sortBy, sortOrder]);
+
+  const handleSort = (field: 'aging' | 'created' | 'businessUnit') => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
+  };
+
+  const handleStatusChange = (issueId: string, newStatus: 'Pending' | 'Noted' | 'Completed') => {
+    setStatusUpdates(prev => ({
+      ...prev,
+      [issueId]: newStatus
+    }));
+  };
+
+  const handleSaveStatus = async (issueId: string) => {
+    const newStatus = statusUpdates[issueId];
+    if (!newStatus) return;
+
+    setSavingIssues(prev => new Set(prev).add(issueId));
+
+    try {
       // Just simulate a successful save for UI purposes
       console.log(`UI Status change: Issue ${issueId} changed to ${newStatus}`);
       

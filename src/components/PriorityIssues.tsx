@@ -167,14 +167,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         const updatedUrgentIssues = reportWithIssue.urgentIssues.map(issue => {
           if (issue.id === issueId) {
             // Explicitly construct each property of the updatedIssue object
-            // Explicitly construct each property of the updatedIssue object
             const updatedIssue = {
-              id: issue.id,
-              description: issue.description,
-              timestamp: issue.timestamp,
-              requiresAction: issue.requiresAction,
-              submittedBy: issue.submittedBy,
-              status: newStatus, // Explicitly set the status field
               id: issue.id,
               description: issue.description,
               timestamp: issue.timestamp,
@@ -186,8 +179,6 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               completedBy: newStatus === 'Completed' ? 'BU Manager' : null
             };
             
-            console.log('Explicitly constructed updated issue:', updatedIssue);
-            console.log('Updated issue status field:', updatedIssue.status);
             console.log('Explicitly constructed updated issue:', updatedIssue);
             console.log('Updated issue status field:', updatedIssue.status);
             
@@ -237,7 +228,6 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               console.log('Target issue in database after update:', {
                 id: targetIssue.id,
                 status: targetIssue.status,
-                status: targetIssue.status,
                 isCompleted: targetIssue.isCompleted,
                 completedAt: targetIssue.completedAt,
                 completedBy: targetIssue.completedBy
@@ -246,6 +236,11 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               console.log('Target issue NOT FOUND in database after update');
             }
           } catch (parseError) {
+            console.log('Failed to parse urgent column from database:', parseError);
+          }
+        } else {
+          console.log('No checkData.urgent found after update');
+        }
         
         if (error) {
           throw error;
@@ -267,8 +262,9 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
     } catch (error) {
       console.error('Failed to update issue status:', error);
     } finally {
+      alert(`Failed to update issue status: ${error.message || 'Unknown error'}`);
+    } finally {
       setSavingIssues(prev => {
-      // alert(`Failed to update issue status: ${error.message || 'Unknown error'}`);
         updated.delete(issueId);
         return updated;
       });

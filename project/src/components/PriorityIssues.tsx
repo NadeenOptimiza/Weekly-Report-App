@@ -340,6 +340,29 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
                 Priority Issues Dashboard
               </h1>
+              <p className={`${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                Manage urgent issues requiring BU Manager action
+              </p>
+            </div>
+          </div>
+          
+          {/* Issue Counters */}
+          <div className="flex items-center space-x-4">
+            <div className={`px-4 py-2 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+              <span className={`text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                Total Issues: 
+              </span>
+              <span className={`text-lg font-bold ml-2 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
+                {priorityIssues.length}
+              </span>
+            </div>
+            <div className={`px-4 py-2 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+              <span className={`text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                Completed This Week: 
+              </span>
+              <span className={`text-lg font-bold ml-2 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                {completedThisWeek}
+              </span>
             </div>
           </div>
         </div>

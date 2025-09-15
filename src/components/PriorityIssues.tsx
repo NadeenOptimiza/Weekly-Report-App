@@ -172,6 +172,12 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               description: issue.description,
               timestamp: issue.timestamp,
               requiresAction: issue.requiresAction,
+            // Explicitly construct each property of the updatedIssue object
+            const updatedIssue = {
+              id: issue.id,
+              description: issue.description,
+              timestamp: issue.timestamp,
+              requiresAction: issue.requiresAction,
               submittedBy: issue.submittedBy,
               status: newStatus, // Explicitly set the status field
               isCompleted: newStatus === 'Completed',

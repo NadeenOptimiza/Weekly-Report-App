@@ -53,6 +53,23 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
   const [statusUpdates, setStatusUpdates] = useState<Record<string, 'Pending' | 'Noted' | 'Completed'>>({});
   const [savingIssues, setSavingIssues] = useState<Set<string>>(new Set());
 
+  // Calculate completed issues this week at the top level
+  const completedThisWeek = React.useMemo(() => {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    
+    return reports.reduce((count, report) => {
+      if (Array.isArray(report.urgentIssues)) {
+        return count + report.urgentIssues.filter(issue => 
+          issue.status === 'Completed' && 
+          issue.completedAt && 
+          new Date(issue.completedAt) >= oneWeekAgo
+        ).length;
+      }
+      return count;
+    }, 0);
+  }, [reports]);
+
   // Extract all priority issues from reports
   const priorityIssues: PriorityIssueWithContext[] = React.useMemo(() => {
     if (!reports) return [];
@@ -322,42 +339,6 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
               <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
                 Priority Issues Dashboard
               </h1>
-              <p className={`${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                All urgent issues requiring BU Manager action across all business units
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className={`px-4 py-2 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
-              <span className={`text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                Total Issues: 
-              </span>
-              <span className={`text-lg font-bold ml-2 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
-                {priorityIssues.length}
-              </span>
-            </div>
-            <div className={`px-4 py-2 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
-              <span className={`text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                Completed This Week: 
-              </span>
-              <span className={`text-lg font-bold ml-2 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                {React.useMemo(() => {
-                  const oneWeekAgo = new Date();
-                  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-                  
-                  return reports.reduce((count, report) => {
-                    if (Array.isArray(report.urgentIssues)) {
-                      return count + report.urgentIssues.filter(issue => 
-                        issue.status === 'Completed' && 
-                        issue.completedAt && 
-                        new Date(issue.completedAt) >= oneWeekAgo
-                      ).length;
-                    }
-                    return count;
-                  }, 0);
-                }, [reports])}
-              </span>
-            </div>
           </div>
         </div>
 

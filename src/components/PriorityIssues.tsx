@@ -146,6 +146,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
   };
 
   const handleSaveStatus = async (issueId: string) => {
+    // CRITICAL: Ensure newStatus is correctly captured from the UI state
     const newStatus = statusUpdates[issueId];
     if (!newStatus) return;
 
@@ -166,26 +167,39 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         // Update the issue in the report's urgent issues
         const updatedUrgentIssues = reportWithIssue.urgentIssues.map(issue => {
           if (issue.id === issueId) {
-            // Explicitly construct the updated issue - NO SPREAD OPERATOR
+            // Explicitly construct the updated issue to ensure all fields, especially 'status', are present.
+            // This avoids issues where 'status' might be missing from older data or if spread operator
+            // doesn't correctly merge new properties.
             const updatedIssue = {
               id: issue.id,
               description: issue.description,
               timestamp: issue.timestamp,
               requiresAction: issue.requiresAction,
               submittedBy: issue.submittedBy,
-              status: newStatus, // CRITICAL: This must be included
+              // CRITICAL: Explicitly set the status based on the newStatus from the UI
+              status: newStatus,
+              // isCompleted is derived from the newStatus
               isCompleted: newStatus === 'Completed',
-              completedAt: newStatus === 'Completed' ? new Date() : (issue.completedAt || null),
-              completedBy: (newStatus === 'Completed' || newStatus === 'Noted') ? 'BU Manager' : (issue.completedBy || null)
+              // completedAt is set only if the status becomes 'Completed'
+              completedAt: newStatus === 'Completed' ? new Date() : undefined, // Use undefined for optional fields
+              // completedBy is set if status is 'Completed' or 'Noted'
+              completedBy: (newStatus === 'Completed' || newStatus === 'Noted') ? 'BU Manager' : undefined // Use undefined for optional fields
             };
             
             console.log('Explicitly constructed updated issue:');
             console.log('- ID:', updatedIssue.id);
+            console.log('- Description:', updatedIssue.description);
+            console.log('- Timestamp:', updatedIssue.timestamp);
+            console.log('- Requires Action:', updatedIssue.requiresAction);
+            console.log('- Submitted By:', updatedIssue.submittedBy);
             console.log('- Status:', updatedIssue.status);
             console.log('- IsCompleted:', updatedIssue.isCompleted);
             console.log('- CompletedAt:', updatedIssue.completedAt);
             console.log('- CompletedBy:', updatedIssue.completedBy);
             console.log('- Full object:', updatedIssue);
+
+            // Ensure the timestamp is a Date object for consistency, but it will be stringified to ISO string
+            updatedIssue.timestamp = new Date(updatedIssue.timestamp);
             
             return updatedIssue;
           }
@@ -200,17 +214,20 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
         const jsonString = JSON.stringify(updatedUrgentIssues);
         console.log('JSON string being sent to database:', jsonString);
         console.log('JSON string length:', jsonString.length);
-        
+
         // Verify the JSON string contains the status field
         const parsedJson = JSON.parse(jsonString);
         const parsedTargetIssue = parsedJson.find(i => i.id === issueId);
         console.log('VERIFICATION - Parsed JSON target issue:', parsedTargetIssue);
         console.log('VERIFICATION - Parsed JSON target issue status:', parsedTargetIssue?.status);
-        
+
         if (!parsedTargetIssue?.status) {
           console.error('ERROR: Status field is missing from JSON string!');
+          alert('Error: Status field was not included in the JSON string sent to the database.');
+          throw new Error('Status field missing from JSON payload.');
         } else {
           console.log('SUCCESS: Status field is present in JSON string:', parsedTargetIssue.status);
+          alert(`Success: Status field is present in JSON string: ${parsedTargetIssue.status}`);
         }
 
         // Update the database with the modified urgent issues JSON
@@ -221,7 +238,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
           })
           .eq('id', parseInt(reportWithIssue.id));
 
-        console.log('Supabase update response - error:', error);
+        console.log('Supabase update response - error:', error ? error.message : 'No error');
         
         if (error) {
           throw error;
@@ -242,7 +259,7 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
       
     } catch (error) {
       console.error('Failed to update issue status:', error);
-      alert(`Failed to update issue status: ${error.message || 'Unknown error'}`);
+      alert(`Failed to update issue status: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setSavingIssues(prev => {
         const updated = new Set(prev);

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ReportCard } from './ReportCard';
 import WeekSelector from './WeekSelector';
 import { formatWeekLabel } from '../data/sampleData';
-import { useWeeklyReports, useBusinessUnits } from '../hooks/useDatabase';
+import { useWeeklyReports, useBusinessUnits, useDivisions } from '../hooks/useDatabase';
 import { useAuth } from '../hooks/useAuth';
 import { TrendingUp, AlertCircle, CheckCircle2, Clock, Users, Building2 } from 'lucide-react';
 
@@ -16,6 +16,7 @@ export function Dashboard({ selectedWeek, onWeekChange, isDarkMode }: DashboardP
   const { user, profile } = useAuth();
   const { reports: allReports, loading, error } = useWeeklyReports(selectedWeek);
   const { businessUnits, loading: buLoading } = useBusinessUnits();
+  const { divisions, loading: divLoading } = useDivisions();
   const [selectedBusinessUnit, setSelectedBusinessUnit] = useState<string | null>(null);
 
   // Filter reports based on user role

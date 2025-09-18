@@ -64,6 +64,7 @@ export function useAuth() {
     user,
     profile,
     loading,
-    isBUManager: profile?.role === 'BU_MANAGER'
+    isBUManager: profile?.role === 'BU_MANAGER',
+    isDivisionManager: profile?.role === 'DIVISION_MANAGER'
   };
 }

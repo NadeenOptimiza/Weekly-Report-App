@@ -15,7 +15,7 @@ import { BarChart3, FileText, Plus, Menu, X, User, LogOut, Settings, Sun, Moon, 
 type View = 'dashboard' | 'form' | 'admin' | 'settings' | 'priority-issues';
 
 function App() {
-  const { user, profile, loading: authLoading, isBUManager } = useAuth();
+  const { user, profile, loading: authLoading, isBUManager, isDivisionManager } = useAuth();
   const [currentView, setCurrentView] = useState<View>('dashboard');
   
   // Initialize selectedWeek with current week - reset on user change
@@ -174,7 +174,7 @@ function App() {
                   <FileText className="w-4 h-4 mr-2" />
                   Submit Report
                 </button>
-                {isBUManager && (
+                {(isBUManager || isDivisionManager) && (
                   <>
                   <button
                     onClick={() => setCurrentView('admin')}
@@ -375,7 +375,7 @@ function App() {
                   <FileText className="w-4 h-4 mr-3" />
                   Submit Report
                 </button>
-                {isBUManager && (
+                {(isBUManager || isDivisionManager) && (
                   <>
                   <button
                     onClick={() => {
@@ -440,7 +440,7 @@ function App() {
         ) : currentView === 'admin' ? (
           <AdminUsers isDarkMode={isDarkMode} />
         ) : currentView === 'priority-issues' ? (
-          <PriorityIssues isDarkMode={isDarkMode} />
+          <PriorityIssues isDarkMode={isDarkMode} isReadOnly={!isBUManager} />
         ) : currentView === 'settings' ? (
           <ChangePasswordForm 
             isDarkMode={isDarkMode}

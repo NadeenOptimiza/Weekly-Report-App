@@ -7,6 +7,7 @@ import { AlertCircle, Clock, Calendar, Building2, User, Save } from 'lucide-reac
 
 interface PriorityIssuesProps {
   isDarkMode: boolean;
+  isReadOnly: boolean;
 }
 
 interface PriorityIssueWithContext extends UrgentIssue {
@@ -44,7 +45,7 @@ const categorizeIssue = (description: string): string => {
   }
 };
 
-export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
+export function PriorityIssues({ isDarkMode, isReadOnly }: PriorityIssuesProps) {
   const { reports, loading, error, refetch } = useWeeklyReports();
   const { user, profile } = useAuth();
   const [businessUnitFilter, setBusinessUnitFilter] = useState<string>('All');
@@ -456,9 +457,11 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
                   <th className={`px-6 py-4 text-left text-sm font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
                     Status
                   </th>
-                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                    Action
-                  </th>
+                  {!isReadOnly && (
+                    <th className={`px-6 py-4 text-left text-sm font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                      Action
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className={`divide-y ${isDarkMode ? 'divide-slate-700' : 'divide-slate-200'}`}>
@@ -532,42 +535,45 @@ export function PriorityIssues({ isDarkMode }: PriorityIssuesProps) {
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        <select
-                          value={statusUpdates[issue.id] || issue.status}
-                          onChange={(e) => handleStatusChange(issue.id, e.target.value as 'Pending' | 'Noted' | 'Completed')}
-                          className={`px-3 py-1 text-xs font-medium rounded-lg border focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors ${
-                            isDarkMode 
-                              ? 'border-slate-600 bg-slate-700 text-white' 
-                              : 'border-slate-300 bg-white text-slate-900'
-                          }`}
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="Noted">Noted</option>
-                          <option value="Completed">Complete</option>
-                        </select>
-                        
-                        {statusUpdates[issue.id] && (
-                          <button
-                            onClick={() => handleSaveStatus(issue.id)}
-                            disabled={savingIssues.has(issue.id)}
-                            className={`flex items-center px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    {!isReadOnly && (
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <select
+                            value={statusUpdates[issue.id] || issue.status}
+                            onChange={(e) => handleStatusChange(issue.id, e.target.value as 'Pending' | 'Noted' | 'Completed')}
+                            disabled={isReadOnly}
+                            className={`px-3 py-1 text-xs font-medium rounded-lg border focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors ${
                               isDarkMode 
-                                ? 'bg-emerald-900/30 text-emerald-400 hover:bg-emerald-900/50' 
-                                : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                            }`}
+                                ? 'border-slate-600 bg-slate-700 text-white' 
+                                : 'border-slate-300 bg-white text-slate-900'
+                            } ${(savingIssues.has(issue.id) || isReadOnly) ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
-                            {savingIssues.has(issue.id) ? (
-                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-1"></div>
-                            ) : (
-                              <Save className="w-3 h-3 mr-1" />
-                            )}
-                            Save
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                            <option value="Pending">Pending</option>
+                            <option value="Noted">Noted</option>
+                            <option value="Completed">Complete</option>
+                          </select>
+                          
+                          {statusUpdates[issue.id] && (
+                            <button
+                              onClick={() => handleSaveStatus(issue.id)}
+                              disabled={isReadOnly || savingIssues.has(issue.id)}
+                              className={`flex items-center px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                isDarkMode 
+                                  ? 'bg-emerald-900/30 text-emerald-400 hover:bg-emerald-900/50' 
+                                  : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                              }`}
+                            >
+                              {savingIssues.has(issue.id) ? (
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-1"></div>
+                              ) : (
+                                <Save className="w-3 h-3 mr-1" />
+                              )}
+                              Save
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

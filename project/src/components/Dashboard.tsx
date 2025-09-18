@@ -96,7 +96,7 @@ export function Dashboard({ selectedWeek, onWeekChange, isDarkMode }: DashboardP
   
   // Get total divisions for selected business unit
   const selectedBU = businessUnits.find(bu => bu.name === selectedBusinessUnit);
-  const totalDivisionsForBU = selectedBU ? 3 : 0; // This should be calculated based on actual divisions data
+  const totalDivisionsForBU = selectedBU ? (divisions[selectedBU.id] || []).length : 0;
 
   return (
     <div className="space-y-6">
@@ -134,6 +134,7 @@ export function Dashboard({ selectedWeek, onWeekChange, isDarkMode }: DashboardP
               const hasUrgentIssues = buUrgentCount > 0;
               const buDivisionsReported = buReports.length;
               const buTotalDivisions = 3; // This should be calculated based on actual divisions data
+              const buTotalDivisions = divisions[bu.id] ? divisions[bu.id].length : 0;
               
               return (
                 <div

@@ -133,7 +133,6 @@ export function Dashboard({ selectedWeek, onWeekChange, isDarkMode }: DashboardP
               }, 0);
               const hasUrgentIssues = buUrgentCount > 0;
               const buDivisionsReported = buReports.length;
-              const buTotalDivisions = 3; // This should be calculated based on actual divisions data
               const buTotalDivisions = divisions[bu.id] ? divisions[bu.id].length : 0;
               
               return (

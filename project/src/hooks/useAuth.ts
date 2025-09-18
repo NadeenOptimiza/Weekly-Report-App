@@ -19,7 +19,16 @@ export function useAuth() {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      // Handle invalid refresh token error
+      if (error && error.message?.includes('Invalid Refresh Token: Refresh Token Not Found')) {
+        supabase.auth.signOut();
+        setUser(null);
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
+      
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);

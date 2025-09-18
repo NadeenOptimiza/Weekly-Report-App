@@ -176,21 +176,23 @@ function App() {
                 </button>
                 {(isBUManager || isDivisionManager) && (
                   <>
-                  <button
-                    onClick={() => setCurrentView('admin')}
-                    className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      currentView === 'admin'
-                        ? isDarkMode 
-                          ? 'bg-red-900/30 text-red-300 shadow-sm border border-red-800/50'
-                          : 'bg-red-50 text-red-700 shadow-sm border border-red-100'
-                        : isDarkMode
-                          ? 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                    }`}
-                  >
-                    <Users className="w-4 h-4 mr-2" />
-                    Admin
-                  </button>
+                  {isBUManager && (
+                    <button
+                      onClick={() => setCurrentView('admin')}
+                      className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                        currentView === 'admin'
+                          ? isDarkMode 
+                            ? 'bg-red-900/30 text-red-300 shadow-sm border border-red-800/50'
+                            : 'bg-red-50 text-red-700 shadow-sm border border-red-100'
+                          : isDarkMode
+                            ? 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      }`}
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      Admin
+                    </button>
+                  )}
                   <button
                     onClick={() => setCurrentView('priority-issues')}
                     className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
@@ -377,24 +379,26 @@ function App() {
                 </button>
                 {(isBUManager || isDivisionManager) && (
                   <>
-                  <button
-                    onClick={() => {
-                      setCurrentView('admin');
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      currentView === 'admin'
-                        ? isDarkMode 
-                          ? 'bg-red-900/30 text-red-300'
-                          : 'bg-red-50 text-red-700'
-                        : isDarkMode
-                          ? 'text-slate-300 hover:bg-slate-700/50'
-                          : 'text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <Users className="w-4 h-4 mr-3" />
-                    Admin
-                  </button>
+                  {isBUManager && (
+                    <button
+                      onClick={() => {
+                        setCurrentView('admin');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                        currentView === 'admin'
+                          ? isDarkMode 
+                            ? 'bg-red-900/30 text-red-300'
+                            : 'bg-red-50 text-red-700'
+                          : isDarkMode
+                            ? 'text-slate-300 hover:bg-slate-700/50'
+                            : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <Users className="w-4 h-4 mr-3" />
+                      Admin
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       setCurrentView('priority-issues');

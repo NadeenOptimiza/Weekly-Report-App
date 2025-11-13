@@ -4,6 +4,7 @@ import { ReportForm } from './components/ReportForm';
 import { AdminUsers } from './components/AdminUsers';
 import { PriorityIssues } from './components/PriorityIssues';
 import { TopDeals } from './components/TopDeals';
+import { DataAdmin } from './components/DataAdmin';
 import { Auth } from './components/Auth';
 import { ChangePasswordForm } from './components/ChangePasswordForm';
 import WeekSelector from './components/WeekSelector';
@@ -11,12 +12,13 @@ import { getCurrentWeek, currentUser } from './data/sampleData';
 import { useAuth } from './hooks/useAuth';
 import { supabase } from './lib/supabase';
 import { isoYearWeek } from './utils/week-mapping';
-import { BarChart3, FileText, Plus, Menu, X, User, LogOut, Settings, Sun, Moon, Clock, Users, Shield, AlertCircle, TrendingUp } from 'lucide-react';
+import { BarChart3, FileText, Plus, Menu, X, User, LogOut, Settings, Sun, Moon, Clock, Users, Shield, AlertCircle, TrendingUp, Database } from 'lucide-react';
 
-type View = 'dashboard' | 'form' | 'admin' | 'settings' | 'priority-issues' | 'top-deals';
+type View = 'dashboard' | 'form' | 'admin' | 'settings' | 'priority-issues' | 'top-deals' | 'data-admin';
 
 function App() {
   const { user, profile, loading: authLoading, isBUManager, isDivisionManager } = useAuth();
+  const isNadeenHabboub = user?.email === 'nadeen.habboub@optimizo.me';
   const [currentView, setCurrentView] = useState<View>('dashboard');
   
   // Initialize selectedWeek with current week - reset on user change
@@ -213,6 +215,24 @@ function App() {
             </div>
 
             <div className="flex items-center space-x-4">
+              {/* Data Admin Button (for Nadeen Habboub only) */}
+              {isNadeenHabboub && (
+                <button
+                  onClick={() => setCurrentView('data-admin')}
+                  className={`flex items-center p-2.5 rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${
+                    currentView === 'data-admin'
+                      ? isDarkMode
+                        ? 'bg-red-900/30 text-red-300'
+                        : 'bg-red-50 text-red-700'
+                      : isDarkMode
+                        ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <Database className="w-5 h-5" />
+                </button>
+              )}
+
               {/* Admin Button (for BU Managers only) */}
               {isBUManager && (
                 <button
@@ -457,6 +477,8 @@ function App() {
           />
         ) : currentView === 'admin' ? (
           <AdminUsers isDarkMode={isDarkMode} />
+        ) : currentView === 'data-admin' ? (
+          <DataAdmin isDarkMode={isDarkMode} />
         ) : currentView === 'top-deals' ? (
           <TopDeals isDarkMode={isDarkMode} />
         ) : currentView === 'priority-issues' ? (

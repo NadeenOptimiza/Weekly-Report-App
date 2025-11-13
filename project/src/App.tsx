@@ -18,7 +18,7 @@ type View = 'dashboard' | 'form' | 'admin' | 'settings' | 'priority-issues' | 't
 
 function App() {
   const { user, profile, loading: authLoading, isBUManager, isDivisionManager } = useAuth();
-  const isNadeenHabboub = user?.email === 'nadeen.habboub@optimizo.me';
+  const isNadeenHabboub = user?.email === 'nhabboub@optimizasolutions.com';
   const [currentView, setCurrentView] = useState<View>('dashboard');
   
   // Initialize selectedWeek with current week - reset on user change

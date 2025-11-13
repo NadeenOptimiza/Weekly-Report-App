@@ -49,21 +49,33 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
         throw new Error('The Excel file is empty');
       }
 
-      const deals: DealRow[] = jsonData.map((row: any) => ({
-        opportunity_owner: row['Opportunity Owner'] || '',
-        created: row['Created Date'] ? parseExcelDate(row['Created Date']) : null,
-        opportunity: row['Opportunity Name'] || '',
-        account: row['Account Name'] || '',
-        business: row['Business Unit'] || '',
-        division: row['Division'] || '',
-        deal_value: parseFloat(row['Deal Value']) || 0,
-        gross_margin_percent: parseFloat(row['Gross Margin %']) || 0,
-        gross_margin: parseFloat(row['Gross Margin']) || 0,
-        probability: parseFloat(row['Probability (%)']) || 0,
-        forecast: row['Forecast Level'] || '',
-        stage: row['Stage'] || '',
-        forecast_close_date: row['Close Date'] ? parseExcelDate(row['Close Date']) : null,
-      }));
+      const deals: DealRow[] = jsonData.map((row: any) => {
+        const dealValue = row['Deal Value'];
+        const grossMarginPercent = row['Gross Margin %'];
+        const probability = row['Probability (%)'];
+
+        return {
+          opportunity_owner: row['Opportunity Owner'] || '',
+          created: row['Created Date'] ? parseExcelDate(row['Created Date']) : null,
+          opportunity: row['Opportunity Name'] || '',
+          account: row['Account Name'] || '',
+          business: row['Business Unit'] || '',
+          division: row['Division'] || '',
+          deal_value: typeof dealValue === 'string'
+            ? parseFloat(dealValue.replace(/[^0-9.-]/g, ''))
+            : parseFloat(dealValue) || 0,
+          gross_margin_percent: typeof grossMarginPercent === 'string'
+            ? parseFloat(grossMarginPercent.replace(/[^0-9.-]/g, ''))
+            : parseFloat(grossMarginPercent) || 0,
+          gross_margin: parseFloat(row['Gross Margin']) || 0,
+          probability: typeof probability === 'string'
+            ? parseFloat(probability.replace(/[^0-9.-]/g, ''))
+            : parseFloat(probability) || 0,
+          forecast: row['Forecast Level'] || '',
+          stage: row['Stage'] || '',
+          forecast_close_date: row['Close Date'] ? parseExcelDate(row['Close Date']) : null,
+        };
+      });
 
       const { data: insertedData, error } = await supabase
         .from('deals')

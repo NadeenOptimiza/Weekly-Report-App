@@ -3,6 +3,7 @@ import { Dashboard } from './components/Dashboard';
 import { ReportForm } from './components/ReportForm';
 import { AdminUsers } from './components/AdminUsers';
 import { PriorityIssues } from './components/PriorityIssues';
+import { TopDeals } from './components/TopDeals';
 import { Auth } from './components/Auth';
 import { ChangePasswordForm } from './components/ChangePasswordForm';
 import WeekSelector from './components/WeekSelector';
@@ -10,9 +11,9 @@ import { getCurrentWeek, currentUser } from './data/sampleData';
 import { useAuth } from './hooks/useAuth';
 import { supabase } from './lib/supabase';
 import { isoYearWeek } from './utils/week-mapping';
-import { BarChart3, FileText, Plus, Menu, X, User, LogOut, Settings, Sun, Moon, Clock, Users, Shield, AlertCircle } from 'lucide-react';
+import { BarChart3, FileText, Plus, Menu, X, User, LogOut, Settings, Sun, Moon, Clock, Users, Shield, AlertCircle, TrendingUp } from 'lucide-react';
 
-type View = 'dashboard' | 'form' | 'admin' | 'settings' | 'priority-issues';
+type View = 'dashboard' | 'form' | 'admin' | 'settings' | 'priority-issues' | 'top-deals';
 
 function App() {
   const { user, profile, loading: authLoading, isBUManager, isDivisionManager } = useAuth();
@@ -176,28 +177,26 @@ function App() {
                 </button>
                 {(isBUManager || isDivisionManager) && (
                   <>
-                  {isBUManager && (
-                    <button
-                      onClick={() => setCurrentView('admin')}
-                      className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                        currentView === 'admin'
-                          ? isDarkMode 
-                            ? 'bg-red-900/30 text-red-300 shadow-sm border border-red-800/50'
-                            : 'bg-red-50 text-red-700 shadow-sm border border-red-100'
-                          : isDarkMode
-                            ? 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Users className="w-4 h-4 mr-2" />
-                      Admin
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setCurrentView('top-deals')}
+                    className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      currentView === 'top-deals'
+                        ? isDarkMode
+                          ? 'bg-red-900/30 text-red-300 shadow-sm border border-red-800/50'
+                          : 'bg-red-50 text-red-700 shadow-sm border border-red-100'
+                        : isDarkMode
+                          ? 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Top 5 Deals
+                  </button>
                   <button
                     onClick={() => setCurrentView('priority-issues')}
                     className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                       currentView === 'priority-issues'
-                        ? isDarkMode 
+                        ? isDarkMode
                           ? 'bg-red-900/30 text-red-300 shadow-sm border border-red-800/50'
                           : 'bg-red-50 text-red-700 shadow-sm border border-red-100'
                         : isDarkMode
@@ -214,13 +213,47 @@ function App() {
             </div>
 
             <div className="flex items-center space-x-4">
+              {/* Admin Button (for BU Managers only) */}
+              {isBUManager && (
+                <button
+                  onClick={() => setCurrentView('admin')}
+                  className={`flex items-center p-2.5 rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${
+                    currentView === 'admin'
+                      ? isDarkMode
+                        ? 'bg-red-900/30 text-red-300'
+                        : 'bg-red-50 text-red-700'
+                      : isDarkMode
+                        ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <Users className="w-5 h-5" />
+                </button>
+              )}
+
+              {/* Settings Button */}
+              <button
+                onClick={() => setCurrentView('settings')}
+                className={`flex items-center p-2.5 rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${
+                  currentView === 'settings'
+                    ? isDarkMode
+                      ? 'bg-red-900/30 text-red-300'
+                      : 'bg-red-50 text-red-700'
+                    : isDarkMode
+                      ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+
               {/* User Profile Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                   className={`flex items-center p-2.5 rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${
-                    isDarkMode 
-                      ? 'bg-slate-700 hover:bg-slate-600 text-slate-300' 
+                    isDarkMode
+                      ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                   }`}
                 >
@@ -264,23 +297,6 @@ function App() {
 
                     {/* Menu Items */}
                     <div className="py-2">
-                      <button
-                        onClick={() => {
-                          setCurrentView('settings');
-                          setIsProfileMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center px-4 py-2.5 text-sm transition-colors ${
-                          isDarkMode 
-                            ? 'text-slate-300 hover:bg-slate-700/50' 
-                            : 'text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        <Settings className={`w-4 h-4 mr-3 ${
-                          isDarkMode ? 'text-slate-400' : 'text-slate-500'
-                        }`} />
-                        Settings
-                      </button>
-                      
                       <button
                         onClick={() => {
                           setIsDarkMode(prev => !prev);
@@ -379,26 +395,24 @@ function App() {
                 </button>
                 {(isBUManager || isDivisionManager) && (
                   <>
-                  {isBUManager && (
-                    <button
-                      onClick={() => {
-                        setCurrentView('admin');
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                        currentView === 'admin'
-                          ? isDarkMode 
-                            ? 'bg-red-900/30 text-red-300'
-                            : 'bg-red-50 text-red-700'
-                          : isDarkMode
-                            ? 'text-slate-300 hover:bg-slate-700/50'
-                            : 'text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Users className="w-4 h-4 mr-3" />
-                      Admin
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      setCurrentView('top-deals');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      currentView === 'top-deals'
+                        ? isDarkMode
+                          ? 'bg-red-900/30 text-red-300'
+                          : 'bg-red-50 text-red-700'
+                        : isDarkMode
+                          ? 'text-slate-300 hover:bg-slate-700/50'
+                          : 'text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <TrendingUp className="w-4 h-4 mr-3" />
+                    Top 5 Deals
+                  </button>
                   <button
                     onClick={() => {
                       setCurrentView('priority-issues');
@@ -406,7 +420,7 @@ function App() {
                     }}
                     className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                       currentView === 'priority-issues'
-                        ? isDarkMode 
+                        ? isDarkMode
                           ? 'bg-red-900/30 text-red-300'
                           : 'bg-red-50 text-red-700'
                         : isDarkMode
@@ -436,20 +450,21 @@ function App() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
         {currentView === 'dashboard' ? (
-          <Dashboard 
+          <Dashboard
             selectedWeek={selectedWeek}
             onWeekChange={setSelectedWeek}
             isDarkMode={isDarkMode}
           />
         ) : currentView === 'admin' ? (
           <AdminUsers isDarkMode={isDarkMode} />
+        ) : currentView === 'top-deals' ? (
+          <TopDeals isDarkMode={isDarkMode} />
         ) : currentView === 'priority-issues' ? (
           <PriorityIssues isDarkMode={isDarkMode} isReadOnly={!isBUManager} />
         ) : currentView === 'settings' ? (
-          <ChangePasswordForm 
+          <ChangePasswordForm
             isDarkMode={isDarkMode}
             onPasswordChangeSuccess={() => {
-              // Optionally redirect back to dashboard after successful password change
               setTimeout(() => setCurrentView('dashboard'), 2000);
             }}
           />

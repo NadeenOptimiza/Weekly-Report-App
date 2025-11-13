@@ -52,12 +52,12 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
       const deals: DealRow[] = jsonData.map((row: any) => {
         const dealValue = row['Deal Value'];
         const grossMarginPercent = row['Gross Margin %'];
-        const probability = row['Probability (%)'];
+        const grossMarginProb = row['Gross Margin Probability (%)'];
 
         return {
-          opportunity_owner: row['Opportunity Owner'] || '',
-          created: row['Created Date'] ? parseExcelDate(row['Created Date']) : null,
-          opportunity: row['Opportunity Name'] || '',
+          opportunity_owner: '',
+          created: null,
+          opportunity: '',
           account: row['Account Name'] || '',
           business: row['Business Unit'] || '',
           division: row['Division'] || '',
@@ -67,10 +67,10 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
           gross_margin_percent: typeof grossMarginPercent === 'string'
             ? parseFloat(grossMarginPercent.replace(/[^0-9.-]/g, ''))
             : parseFloat(grossMarginPercent) || 0,
-          gross_margin: parseFloat(row['Gross Margin']) || 0,
-          probability: typeof probability === 'string'
-            ? parseFloat(probability.replace(/[^0-9.-]/g, ''))
-            : parseFloat(probability) || 0,
+          gross_margin: typeof grossMarginProb === 'string'
+            ? parseFloat(grossMarginProb.replace(/[^0-9.-]/g, ''))
+            : parseFloat(grossMarginProb) || 0,
+          probability: 0,
           forecast: row['Forecast Level'] || '',
           stage: row['Stage'] || '',
           forecast_close_date: row['Close Date'] ? parseExcelDate(row['Close Date']) : null,
@@ -157,16 +157,12 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
           <div className={`grid grid-cols-1 md:grid-cols-2 gap-2 text-sm ${
             isDarkMode ? 'text-slate-300' : 'text-slate-600'
           }`}>
-            <div>• Opportunity Owner</div>
-            <div>• Created Date</div>
-            <div>• Opportunity Name</div>
             <div>• Account Name</div>
             <div>• Business Unit</div>
             <div>• Division</div>
             <div>• Deal Value</div>
             <div>• Gross Margin %</div>
-            <div>• Gross Margin</div>
-            <div>• Probability (%)</div>
+            <div>• Gross Margin Probability (%)</div>
             <div>• Forecast Level</div>
             <div>• Stage</div>
             <div>• Forecast Year</div>

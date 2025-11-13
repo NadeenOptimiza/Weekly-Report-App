@@ -79,16 +79,15 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
 
       const { data: insertedData, error } = await supabase
         .from('deals')
-        .insert(deals)
-        .select();
+        .insert(deals);
 
       if (error) {
         throw error;
       }
 
-      setUploadedCount(insertedData?.length || 0);
+      setUploadedCount(deals.length);
       setUploadStatus('success');
-      setMessage(`Successfully uploaded ${insertedData?.length || 0} deals to the database.`);
+      setMessage(`Successfully uploaded ${deals.length} deals to the database.`);
     } catch (error: any) {
       console.error('Error uploading file:', error);
       setUploadStatus('error');

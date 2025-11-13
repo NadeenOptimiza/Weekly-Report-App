@@ -51,18 +51,18 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
 
       const deals: DealRow[] = jsonData.map((row: any) => ({
         opportunity_owner: row['Opportunity Owner'] || '',
-        created: row['Created'] ? parseExcelDate(row['Created']) : null,
-        opportunity: row['Opportunity'] || '',
-        account: row['Account'] || '',
-        business: row['Business'] || '',
+        created: row['Created Date'] ? parseExcelDate(row['Created Date']) : null,
+        opportunity: row['Opportunity Name'] || '',
+        account: row['Account Name'] || '',
+        business: row['Business Unit'] || '',
         division: row['Division'] || '',
         deal_value: parseFloat(row['Deal Value']) || 0,
-        gross_margin: parseFloat(row['Gross Margin']) || 0,
         gross_margin_percent: parseFloat(row['Gross Margin %']) || 0,
-        probability: parseFloat(row['Probability']) || 0,
-        forecast: row['Forecast'] || '',
+        gross_margin: parseFloat(row['Gross Margin']) || 0,
+        probability: parseFloat(row['Probability (%)']) || 0,
+        forecast: row['Forecast Level'] || '',
         stage: row['Stage'] || '',
-        forecast_close_date: row['Forecast Close Date'] ? parseExcelDate(row['Forecast Close Date']) : null,
+        forecast_close_date: row['Close Date'] ? parseExcelDate(row['Close Date']) : null,
       }));
 
       const { data: insertedData, error } = await supabase
@@ -147,18 +147,19 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
             isDarkMode ? 'text-slate-300' : 'text-slate-600'
           }`}>
             <div>• Opportunity Owner</div>
-            <div>• Created</div>
-            <div>• Opportunity</div>
-            <div>• Account</div>
-            <div>• Business</div>
+            <div>• Created Date</div>
+            <div>• Opportunity Name</div>
+            <div>• Account Name</div>
+            <div>• Business Unit</div>
             <div>• Division</div>
             <div>• Deal Value</div>
-            <div>• Gross Margin</div>
             <div>• Gross Margin %</div>
-            <div>• Probability</div>
-            <div>• Forecast</div>
+            <div>• Gross Margin</div>
+            <div>• Probability (%)</div>
+            <div>• Forecast Level</div>
             <div>• Stage</div>
-            <div>• Forecast Close Date</div>
+            <div>• Forecast Year</div>
+            <div>• Close Date</div>
           </div>
         </div>
 

@@ -208,9 +208,9 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-JO', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'JOD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);

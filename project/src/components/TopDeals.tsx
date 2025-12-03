@@ -103,15 +103,24 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         throw allError;
       }
 
-      setAllDeals(allData || []);
+      // Convert numeric string fields to actual numbers
+      const normalizedData = (allData || []).map(deal => ({
+        ...deal,
+        'Deal Value': Number(deal['Deal Value']) || 0,
+        'Probability (%)': Number(deal['Probability (%)']) || 0,
+        'Gross Margin Value': deal['Gross Margin Value'] ? Number(deal['Gross Margin Value']) : undefined,
+        'Gross Margin %': deal['Gross Margin %'] ? Number(deal['Gross Margin %']) : undefined,
+      }));
 
-      const top5 = (allData || [])
+      setAllDeals(normalizedData);
+
+      const top5 = normalizedData
         .sort((a, b) => b['Deal Value'] - a['Deal Value'])
         .slice(0, 5);
 
       setDeals(top5);
 
-      calculateMetrics(allData || []);
+      calculateMetrics(normalizedData);
     } catch (error: any) {
       console.error('Error fetching deals:', error);
       setMetrics(null);
@@ -450,7 +459,7 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
                       <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                         {deal['Probability (%)']}% probability
                       </p>
-                      {deal['Gross Margin %'] !== undefined && deal['Gross Margin %'] !== null && (
+                      {deal['Gross Margin %'] !== undefined && deal['Gross Margin %'] !== null && typeof deal['Gross Margin %'] === 'number' && !isNaN(deal['Gross Margin %']) && (
                         <p className={`text-xs mt-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>
                           {deal['Gross Margin %'].toFixed(1)}% margin
                         </p>

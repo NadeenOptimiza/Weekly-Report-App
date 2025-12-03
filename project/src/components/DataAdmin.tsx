@@ -40,12 +40,6 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
     setUploadedCount(0);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error('You must be logged in to upload deals');
-      }
-
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
       const sheetName = workbook.SheetNames[0];
@@ -85,7 +79,6 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
           'Stage': row['Stage'] || '',
           'Forecast Year': row['Forecast Year'] ? String(row['Forecast Year']) : '',
           'Close Date': row['Close Date'] ? parseExcelDate(row['Close Date']) : null,
-          uploaded_by: user.id,
         };
       });
 

@@ -8,19 +8,20 @@ interface DataAdminProps {
 }
 
 interface DealRow {
-  opportunity_owner: string;
-  created: string;
-  opportunity: string;
-  account: string;
-  business: string;
-  division: string;
-  deal_value: number;
-  gross_margin: number;
-  gross_margin_percent: number;
-  probability: number;
-  forecast: string;
-  stage: string;
-  forecast_close_date: string;
+  opportunity_owner: string;          // Excel: Opportunity Owner
+  created: string;                     // Excel: Created Date
+  opportunity: string;                 // Excel: Opportunity Name
+  account: string;                     // Excel: Account Name
+  business: string;                    // Excel: Business Unit
+  division: string;                    // Excel: Division
+  deal_value: number;                  // Excel: Deal Value
+  gross_margin_percent: number;        // Excel: Gross Margin %
+  gross_margin: number;                // Excel: Gross Margin Value
+  probability: number;                 // Excel: Probability (%)
+  forecast: string;                    // Excel: Forecast Level
+  stage: string;                       // Excel: Stage
+  forecast_year: string;               // Excel: Forecast Year
+  forecast_close_date: string;         // Excel: Close Date
 }
 
 export function DataAdmin({ isDarkMode }: DataAdminProps) {
@@ -52,12 +53,13 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
       const deals: DealRow[] = jsonData.map((row: any) => {
         const dealValue = row['Deal Value'];
         const grossMarginPercent = row['Gross Margin %'];
-        const grossMarginProb = row['Gross Margin Probability (%)'];
+        const grossMarginValue = row['Gross Margin Value'];
+        const probability = row['Probability (%)'];
 
         return {
-          opportunity_owner: '',
-          created: null,
-          opportunity: '',
+          opportunity_owner: row['Opportunity Owner'] || '',
+          created: row['Created Date'] ? parseExcelDate(row['Created Date']) : null,
+          opportunity: row['Opportunity Name'] || '',
           account: row['Account Name'] || '',
           business: row['Business Unit'] || '',
           division: row['Division'] || '',
@@ -67,12 +69,15 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
           gross_margin_percent: typeof grossMarginPercent === 'string'
             ? parseFloat(grossMarginPercent.replace(/[^0-9.-]/g, ''))
             : parseFloat(grossMarginPercent) || 0,
-          gross_margin: typeof grossMarginProb === 'string'
-            ? parseFloat(grossMarginProb.replace(/[^0-9.-]/g, ''))
-            : parseFloat(grossMarginProb) || 0,
-          probability: 0,
+          gross_margin: typeof grossMarginValue === 'string'
+            ? parseFloat(grossMarginValue.replace(/[^0-9.-]/g, ''))
+            : parseFloat(grossMarginValue) || 0,
+          probability: typeof probability === 'string'
+            ? parseFloat(probability.replace(/[^0-9.-]/g, ''))
+            : parseFloat(probability) || 0,
           forecast: row['Forecast Level'] || '',
           stage: row['Stage'] || '',
+          forecast_year: row['Forecast Year'] ? String(row['Forecast Year']) : '',
           forecast_close_date: row['Close Date'] ? parseExcelDate(row['Close Date']) : null,
         };
       });
@@ -152,17 +157,21 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
           <h3 className={`font-semibold mb-2 ${
             isDarkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Required Excel Columns:
+            Required Excel Columns (14 total):
           </h3>
           <div className={`grid grid-cols-1 md:grid-cols-2 gap-2 text-sm ${
             isDarkMode ? 'text-slate-300' : 'text-slate-600'
           }`}>
+            <div>• Opportunity Owner</div>
+            <div>• Created Date</div>
+            <div>• Opportunity Name</div>
             <div>• Account Name</div>
             <div>• Business Unit</div>
             <div>• Division</div>
             <div>• Deal Value</div>
             <div>• Gross Margin %</div>
-            <div>• Gross Margin Probability (%)</div>
+            <div>• Gross Margin Value</div>
+            <div>• Probability (%)</div>
             <div>• Forecast Level</div>
             <div>• Stage</div>
             <div>• Forecast Year</div>

@@ -33,7 +33,8 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [allDeals, setAllDeals] = useState<Deal[]>([]);
   const [businessUnits, setBusinessUnits] = useState<string[]>([]);
-  const [divisions, setDivisions] = useState<string[]>([]);
+  const [allDivisions, setAllDivisions] = useState<string[]>([]);
+  const [filteredDivisions, setFilteredDivisions] = useState<string[]>([]);
   const [selectedBusiness, setSelectedBusiness] = useState<string>('all');
   const [selectedDivision, setSelectedDivision] = useState<string>('all');
   const [loading, setLoading] = useState(true);
@@ -42,6 +43,10 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
   useEffect(() => {
     fetchFilters();
   }, []);
+
+  useEffect(() => {
+    filterDivisionsByBusiness();
+  }, [selectedBusiness, allDivisions]);
 
   useEffect(() => {
     fetchTopDeals();
@@ -75,9 +80,42 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
       const uniqueDivisions = [...new Set(divisionData?.map(d => d['Division']) || [])].sort();
 
       setBusinessUnits(uniqueBusinesses);
-      setDivisions(uniqueDivisions);
+      setAllDivisions(uniqueDivisions);
+      setFilteredDivisions(uniqueDivisions);
     } catch (error) {
       console.error('Error fetching filters:', error);
+    }
+  };
+
+  const filterDivisionsByBusiness = async () => {
+    if (selectedBusiness === 'all') {
+      setFilteredDivisions(allDivisions);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('deals')
+        .select('"Division"')
+        .eq('"Business Unit"', selectedBusiness)
+        .not('"Division"', 'is', null)
+        .neq('"Division"', '');
+
+      if (error) {
+        console.error('Error filtering divisions:', error);
+        setFilteredDivisions([]);
+        return;
+      }
+
+      const uniqueDivisions = [...new Set(data?.map(d => d['Division']) || [])].sort();
+      setFilteredDivisions(uniqueDivisions);
+
+      if (selectedDivision !== 'all' && !uniqueDivisions.includes(selectedDivision)) {
+        setSelectedDivision('all');
+      }
+    } catch (error) {
+      console.error('Error filtering divisions:', error);
+      setFilteredDivisions([]);
     }
   };
 
@@ -241,7 +279,7 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
                 } focus:outline-none focus:ring-2 focus:ring-red-500`}
               >
                 <option value="all">All Divisions</option>
-                {divisions.map(div => (
+                {filteredDivisions.map(div => (
                   <option key={div} value={div}>{div}</option>
                 ))}
               </select>

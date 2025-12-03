@@ -49,17 +49,27 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
 
   const fetchFilters = async () => {
     try {
-      const { data: businessData } = await supabase
+      const { data: businessData, error: businessError } = await supabase
         .from('deals')
         .select('"Business Unit"')
-        .not('Business Unit', 'is', null)
-        .neq('Business Unit', '');
+        .not('"Business Unit"', 'is', null)
+        .neq('"Business Unit"', '');
 
-      const { data: divisionData } = await supabase
+      if (businessError) {
+        console.error('Error fetching business units:', businessError);
+        throw businessError;
+      }
+
+      const { data: divisionData, error: divisionError } = await supabase
         .from('deals')
         .select('"Division"')
-        .not('Division', 'is', null)
-        .neq('Division', '');
+        .not('"Division"', 'is', null)
+        .neq('"Division"', '');
+
+      if (divisionError) {
+        console.error('Error fetching divisions:', divisionError);
+        throw divisionError;
+      }
 
       const uniqueBusinesses = [...new Set(businessData?.map(d => d['Business Unit']) || [])].sort();
       const uniqueDivisions = [...new Set(divisionData?.map(d => d['Division']) || [])].sort();
@@ -79,16 +89,19 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         .select('*');
 
       if (selectedBusiness !== 'all') {
-        query = query.eq('Business Unit', selectedBusiness);
+        query = query.eq('"Business Unit"', selectedBusiness);
       }
 
       if (selectedDivision !== 'all') {
-        query = query.eq('Division', selectedDivision);
+        query = query.eq('"Division"', selectedDivision);
       }
 
       const { data: allData, error: allError } = await query;
 
-      if (allError) throw allError;
+      if (allError) {
+        console.error('Error fetching deals:', allError);
+        throw allError;
+      }
 
       setAllDeals(allData || []);
 
@@ -99,8 +112,11 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
       setDeals(top5);
 
       calculateMetrics(allData || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching deals:', error);
+      setMetrics(null);
+      setDeals([]);
+      setAllDeals([]);
     } finally {
       setLoading(false);
     }

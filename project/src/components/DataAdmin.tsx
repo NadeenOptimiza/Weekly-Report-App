@@ -8,20 +8,20 @@ interface DataAdminProps {
 }
 
 interface DealRow {
-  opportunity_owner: string;          // Excel: Opportunity Owner
-  created: string;                     // Excel: Created Date
-  opportunity: string;                 // Excel: Opportunity Name
-  account: string;                     // Excel: Account Name
-  business: string;                    // Excel: Business Unit
-  division: string;                    // Excel: Division
-  deal_value: number;                  // Excel: Deal Value
-  gross_margin_percent: number;        // Excel: Gross Margin %
-  gross_margin: number;                // Excel: Gross Margin Value
-  probability: number;                 // Excel: Probability (%)
-  forecast: string;                    // Excel: Forecast Level
-  stage: string;                       // Excel: Stage
-  forecast_year: string;               // Excel: Forecast Year
-  forecast_close_date: string;         // Excel: Close Date
+  'Opportunity Owner': string;
+  'Created Date': string;
+  'Opportunity Name': string;
+  'Account Name': string;
+  'Business Unit': string;
+  'Division': string;
+  'Deal Value': number;
+  'Gross Margin %': number;
+  'Gross Margin Value': number;
+  'Probability (%)': number;
+  'Forecast Level': string;
+  'Stage': string;
+  'Forecast Year': string;
+  'Close Date': string;
 }
 
 export function DataAdmin({ isDarkMode }: DataAdminProps) {
@@ -57,28 +57,28 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
         const probability = row['Probability (%)'];
 
         return {
-          opportunity_owner: row['Opportunity Owner'] || '',
-          created: row['Created Date'] ? parseExcelDate(row['Created Date']) : null,
-          opportunity: row['Opportunity Name'] || '',
-          account: row['Account Name'] || '',
-          business: row['Business Unit'] || '',
-          division: row['Division'] || '',
-          deal_value: typeof dealValue === 'string'
+          'Opportunity Owner': row['Opportunity Owner'] || '',
+          'Created Date': row['Created Date'] ? parseExcelDate(row['Created Date']) : null,
+          'Opportunity Name': row['Opportunity Name'] || '',
+          'Account Name': row['Account Name'] || '',
+          'Business Unit': row['Business Unit'] || '',
+          'Division': row['Division'] || '',
+          'Deal Value': typeof dealValue === 'string'
             ? parseFloat(dealValue.replace(/[^0-9.-]/g, ''))
             : parseFloat(dealValue) || 0,
-          gross_margin_percent: typeof grossMarginPercent === 'string'
+          'Gross Margin %': typeof grossMarginPercent === 'string'
             ? parseFloat(grossMarginPercent.replace(/[^0-9.-]/g, ''))
             : parseFloat(grossMarginPercent) || 0,
-          gross_margin: typeof grossMarginValue === 'string'
+          'Gross Margin Value': typeof grossMarginValue === 'string'
             ? parseFloat(grossMarginValue.replace(/[^0-9.-]/g, ''))
             : parseFloat(grossMarginValue) || 0,
-          probability: typeof probability === 'string'
+          'Probability (%)': typeof probability === 'string'
             ? parseFloat(probability.replace(/[^0-9.-]/g, ''))
             : parseFloat(probability) || 0,
-          forecast: row['Forecast Level'] || '',
-          stage: row['Stage'] || '',
-          forecast_year: row['Forecast Year'] ? String(row['Forecast Year']) : '',
-          forecast_close_date: row['Close Date'] ? parseExcelDate(row['Close Date']) : null,
+          'Forecast Level': row['Forecast Level'] || '',
+          'Stage': row['Stage'] || '',
+          'Forecast Year': row['Forecast Year'] ? String(row['Forecast Year']) : '',
+          'Close Date': row['Close Date'] ? parseExcelDate(row['Close Date']) : null,
         };
       });
 

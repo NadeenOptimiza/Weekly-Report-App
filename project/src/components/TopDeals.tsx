@@ -8,16 +8,16 @@ interface TopDealsProps {
 
 interface Deal {
   id: string;
-  opportunity: string;
-  account: string;
-  deal_value: number;
-  probability: number;
-  stage: string;
-  business: string;
-  division: string;
-  gross_margin?: number;
-  gross_margin_percent?: number;
-  forecast?: string;
+  'Opportunity Name': string;
+  'Account Name': string;
+  'Deal Value': number;
+  'Probability (%)': number;
+  'Stage': string;
+  'Business Unit': string;
+  'Division': string;
+  'Gross Margin Value'?: number;
+  'Gross Margin %'?: number;
+  'Forecast Level'?: string;
 }
 
 interface DashboardMetrics {
@@ -51,18 +51,18 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
     try {
       const { data: businessData } = await supabase
         .from('deals')
-        .select('business')
-        .not('business', 'is', null)
-        .neq('business', '');
+        .select('"Business Unit"')
+        .not('Business Unit', 'is', null)
+        .neq('Business Unit', '');
 
       const { data: divisionData } = await supabase
         .from('deals')
-        .select('division')
-        .not('division', 'is', null)
-        .neq('division', '');
+        .select('"Division"')
+        .not('Division', 'is', null)
+        .neq('Division', '');
 
-      const uniqueBusinesses = [...new Set(businessData?.map(d => d.business) || [])].sort();
-      const uniqueDivisions = [...new Set(divisionData?.map(d => d.division) || [])].sort();
+      const uniqueBusinesses = [...new Set(businessData?.map(d => d['Business Unit']) || [])].sort();
+      const uniqueDivisions = [...new Set(divisionData?.map(d => d['Division']) || [])].sort();
 
       setBusinessUnits(uniqueBusinesses);
       setDivisions(uniqueDivisions);
@@ -79,11 +79,11 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         .select('*');
 
       if (selectedBusiness !== 'all') {
-        query = query.eq('business', selectedBusiness);
+        query = query.eq('Business Unit', selectedBusiness);
       }
 
       if (selectedDivision !== 'all') {
-        query = query.eq('division', selectedDivision);
+        query = query.eq('Division', selectedDivision);
       }
 
       const { data: allData, error: allError } = await query;
@@ -93,7 +93,7 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
       setAllDeals(allData || []);
 
       const top5 = (allData || [])
-        .sort((a, b) => b.deal_value - a.deal_value)
+        .sort((a, b) => b['Deal Value'] - a['Deal Value'])
         .slice(0, 5);
 
       setDeals(top5);
@@ -112,20 +112,20 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
       return;
     }
 
-    const totalPipelineValue = dealsData.reduce((sum, deal) => sum + deal.deal_value, 0);
+    const totalPipelineValue = dealsData.reduce((sum, deal) => sum + deal['Deal Value'], 0);
     const weightedPipelineValue = dealsData.reduce((sum, deal) =>
-      sum + (deal.deal_value * (deal.probability / 100)), 0
+      sum + (deal['Deal Value'] * (deal['Probability (%)'] / 100)), 0
     );
     const averageDealSize = totalPipelineValue / dealsData.length;
-    const avgProbability = dealsData.reduce((sum, deal) => sum + deal.probability, 0) / dealsData.length;
+    const avgProbability = dealsData.reduce((sum, deal) => sum + deal['Probability (%)'], 0) / dealsData.length;
 
     const stageMap = new Map<string, { count: number; value: number }>();
     dealsData.forEach(deal => {
-      const stage = deal.stage || 'Unknown';
+      const stage = deal['Stage'] || 'Unknown';
       const existing = stageMap.get(stage) || { count: 0, value: 0 };
       stageMap.set(stage, {
         count: existing.count + 1,
-        value: existing.value + deal.deal_value
+        value: existing.value + deal['Deal Value']
       });
     });
 
@@ -392,40 +392,40 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
                         <h3 className={`font-semibold text-lg ${
                           isDarkMode ? 'text-white' : 'text-slate-900'
                         }`}>
-                          {deal.opportunity}
+                          {deal['Opportunity Name']}
                         </h3>
                       </div>
                       <p className={`text-sm mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                        {deal.account}
+                        {deal['Account Name']}
                       </p>
                       <div className="flex flex-wrap gap-2">
                         <span className={`px-2 py-1 rounded-md text-xs font-medium ${
                           isDarkMode ? 'bg-slate-600 text-slate-200' : 'bg-slate-200 text-slate-700'
                         }`}>
-                          {deal.business}
+                          {deal['Business Unit']}
                         </span>
                         <span className={`px-2 py-1 rounded-md text-xs font-medium ${
                           isDarkMode ? 'bg-slate-600 text-slate-200' : 'bg-slate-200 text-slate-700'
                         }`}>
-                          {deal.division}
+                          {deal['Division']}
                         </span>
                         <span className={`px-2 py-1 rounded-md text-xs font-medium ${
                           isDarkMode ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-700'
                         }`}>
-                          {deal.stage}
+                          {deal['Stage']}
                         </span>
                       </div>
                     </div>
                     <div className="text-right ml-4">
                       <p className={`text-2xl font-bold ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
-                        {formatCurrency(deal.deal_value)}
+                        {formatCurrency(deal['Deal Value'])}
                       </p>
                       <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                        {deal.probability}% probability
+                        {deal['Probability (%)']}% probability
                       </p>
-                      {deal.gross_margin_percent !== undefined && deal.gross_margin_percent !== null && (
+                      {deal['Gross Margin %'] !== undefined && deal['Gross Margin %'] !== null && (
                         <p className={`text-xs mt-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>
-                          {deal.gross_margin_percent.toFixed(1)}% margin
+                          {deal['Gross Margin %'].toFixed(1)}% margin
                         </p>
                       )}
                     </div>

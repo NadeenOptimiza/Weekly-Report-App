@@ -241,21 +241,32 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         </div>
 
         {loading ? (
-          <div className={`text-center py-12 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-            <p>Loading dashboard...</p>
+          <div className={`text-center py-16 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-red-600 mx-auto mb-4"></div>
+            <p className="text-lg font-medium">Loading dashboard...</p>
           </div>
         ) : !metrics ? (
-          <div className={`text-center py-12 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-            <TrendingUp className={`w-16 h-16 mx-auto mb-4 ${
-              isDarkMode ? 'text-slate-600' : 'text-slate-300'
-            }`} />
-            <h3 className={`text-lg font-semibold mb-2 ${
-              isDarkMode ? 'text-slate-300' : 'text-slate-700'
+          <div className={`text-center py-16 px-6 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+            <div className={`inline-flex p-4 rounded-full mb-6 ${
+              isDarkMode ? 'bg-slate-700' : 'bg-slate-100'
+            }`}>
+              <TrendingUp className={`w-16 h-16 ${
+                isDarkMode ? 'text-slate-500' : 'text-slate-400'
+              }`} />
+            </div>
+            <h3 className={`text-2xl font-bold mb-3 ${
+              isDarkMode ? 'text-white' : 'text-slate-900'
             }`}>
               No Deals Found
             </h3>
-            <p>Upload deals data to see the dashboard.</p>
+            <p className={`text-lg mb-6 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              Upload deals data through the Data Admin page to view pipeline metrics and top opportunities.
+            </p>
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
+              isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'
+            }`}>
+              <span className="text-sm">💡 Tip: You need to be logged in as an admin to upload data</span>
+            </div>
           </div>
         ) : (
           <>

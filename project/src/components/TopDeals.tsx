@@ -24,7 +24,9 @@ interface DashboardMetrics {
   totalPipelineValue: number;
   weightedPipelineValue: number;
   committedCount: number;
+  committedValue: number;
   forecastedCount: number;
+  forecastedValue: number;
   totalDeals: number;
   avgProbability: number;
   topStages: { stage: string; count: number; value: number }[];
@@ -180,8 +182,15 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
     const weightedPipelineValue = dealsData.reduce((sum, deal) =>
       sum + (deal['Deal Value'] * (deal['Probability (%)'] / 100)), 0
     );
-    const committedCount = dealsData.filter(deal => deal['Forecast Level'] === 'Committed').length;
-    const forecastedCount = dealsData.filter(deal => deal['Forecast Level'] === 'Forecasted').length;
+
+    const committedDeals = dealsData.filter(deal => deal['Forecast Level'] === 'Committed');
+    const committedCount = committedDeals.length;
+    const committedValue = committedDeals.reduce((sum, deal) => sum + deal['Deal Value'], 0);
+
+    const forecastedDeals = dealsData.filter(deal => deal['Forecast Level'] === 'Forecasted');
+    const forecastedCount = forecastedDeals.length;
+    const forecastedValue = forecastedDeals.reduce((sum, deal) => sum + deal['Deal Value'], 0);
+
     const avgProbability = dealsData.reduce((sum, deal) => sum + deal['Probability (%)'], 0) / dealsData.length;
 
     const stageMap = new Map<string, { count: number; value: number }>();
@@ -203,7 +212,9 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
       totalPipelineValue,
       weightedPipelineValue,
       committedCount,
+      committedValue,
       forecastedCount,
+      forecastedValue,
       totalDeals: dealsData.length,
       avgProbability,
       topStages
@@ -394,12 +405,12 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
                 <p className={`text-2xl font-bold ${
                   isDarkMode ? 'text-amber-300' : 'text-amber-700'
                 }`}>
-                  {metrics.committedCount}
+                  {formatCurrency(metrics.committedValue)}
                 </p>
-                <p className={`text-xs mt-1 ${
+                <p className={`text-base font-semibold mt-1 ${
                   isDarkMode ? 'text-amber-200' : 'text-amber-600'
                 }`}>
-                  forecast level
+                  {metrics.committedCount} {metrics.committedCount === 1 ? 'deal' : 'deals'}
                 </p>
               </div>
 
@@ -421,12 +432,12 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
                 <p className={`text-2xl font-bold ${
                   isDarkMode ? 'text-purple-300' : 'text-purple-700'
                 }`}>
-                  {metrics.forecastedCount}
+                  {formatCurrency(metrics.forecastedValue)}
                 </p>
-                <p className={`text-xs mt-1 ${
+                <p className={`text-base font-semibold mt-1 ${
                   isDarkMode ? 'text-purple-200' : 'text-purple-600'
                 }`}>
-                  forecast level
+                  {metrics.forecastedCount} {metrics.forecastedCount === 1 ? 'deal' : 'deals'}
                 </p>
               </div>
             </div>

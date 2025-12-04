@@ -117,7 +117,7 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
         const { error: deleteError } = await supabase
           .from('deals')
           .delete()
-          .not('created_at', 'is', null);
+          .gte('id', '00000000-0000-0000-0000-000000000000');
 
         if (deleteError) {
           throw new Error(`Failed to delete existing data: ${deleteError.message}`);

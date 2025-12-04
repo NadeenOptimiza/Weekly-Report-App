@@ -178,18 +178,29 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
       return;
     }
 
+    const uniqueForecastLevels = [...new Set(dealsData.map(d => d['Forecast Level']))];
+    console.log('Unique Forecast Level values in data:', uniqueForecastLevels);
+
     const totalPipelineValue = dealsData.reduce((sum, deal) => sum + deal['Deal Value'], 0);
     const weightedPipelineValue = dealsData.reduce((sum, deal) =>
       sum + (deal['Deal Value'] * (deal['Probability (%)'] / 100)), 0
     );
 
-    const committedDeals = dealsData.filter(deal => deal['Forecast Level'] === 'Committed');
+    const committedDeals = dealsData.filter(deal => {
+      const level = (deal['Forecast Level'] || '').toLowerCase().trim();
+      return level === 'committed' || level === 'commit';
+    });
     const committedCount = committedDeals.length;
     const committedValue = committedDeals.reduce((sum, deal) => sum + deal['Deal Value'], 0);
 
-    const forecastedDeals = dealsData.filter(deal => deal['Forecast Level'] === 'Forecasted');
+    const forecastedDeals = dealsData.filter(deal => {
+      const level = (deal['Forecast Level'] || '').toLowerCase().trim();
+      return level === 'forecasted' || level === 'forecast' || level === 'most likely';
+    });
     const forecastedCount = forecastedDeals.length;
     const forecastedValue = forecastedDeals.reduce((sum, deal) => sum + deal['Deal Value'], 0);
+
+    console.log(`Committed: ${committedCount} deals, Forecasted: ${forecastedCount} deals`);
 
     const avgProbability = dealsData.reduce((sum, deal) => sum + deal['Probability (%)'], 0) / dealsData.length;
 

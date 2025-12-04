@@ -59,7 +59,7 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
     try {
       const { data: businessData, error: businessError } = await supabase
         .from('deals')
-        .select('"Business Unit"')
+        .select('"Business Unit", "Deal Value"')
         .not('"Business Unit"', 'is', null)
         .neq('"Business Unit"', '');
 
@@ -70,7 +70,7 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
 
       const { data: divisionData, error: divisionError } = await supabase
         .from('deals')
-        .select('"Division"')
+        .select('"Division", "Deal Value"')
         .not('"Division"', 'is', null)
         .neq('"Division"', '');
 
@@ -79,8 +79,19 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         throw divisionError;
       }
 
-      const uniqueBusinesses = [...new Set(businessData?.map(d => d['Business Unit']) || [])].sort();
-      const uniqueDivisions = [...new Set(divisionData?.map(d => d['Division']) || [])].sort();
+      // Filter out duplicates (keep only records with JOD prefix)
+      const filteredBusinessData = businessData?.filter(d => {
+        const dealValue = String(d['Deal Value'] || '').trim();
+        return dealValue.startsWith('JOD');
+      }) || [];
+
+      const filteredDivisionData = divisionData?.filter(d => {
+        const dealValue = String(d['Deal Value'] || '').trim();
+        return dealValue.startsWith('JOD');
+      }) || [];
+
+      const uniqueBusinesses = [...new Set(filteredBusinessData.map(d => d['Business Unit']))].sort();
+      const uniqueDivisions = [...new Set(filteredDivisionData.map(d => d['Division']))].sort();
 
       setBusinessUnits(uniqueBusinesses);
       setAllDivisions(uniqueDivisions);
@@ -99,7 +110,7 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
     try {
       const { data, error } = await supabase
         .from('deals')
-        .select('"Division"')
+        .select('"Division", "Deal Value"')
         .eq('"Business Unit"', selectedBusiness)
         .not('"Division"', 'is', null)
         .neq('"Division"', '');
@@ -110,7 +121,13 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         return;
       }
 
-      const uniqueDivisions = [...new Set(data?.map(d => d['Division']) || [])].sort();
+      // Filter out duplicates (keep only records with JOD prefix)
+      const filteredData = data?.filter(d => {
+        const dealValue = String(d['Deal Value'] || '').trim();
+        return dealValue.startsWith('JOD');
+      }) || [];
+
+      const uniqueDivisions = [...new Set(filteredData.map(d => d['Division']))].sort();
       setFilteredDivisions(uniqueDivisions);
 
       if (selectedDivision !== 'all' && !uniqueDivisions.includes(selectedDivision)) {
@@ -144,10 +161,33 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         throw allError;
       }
 
+      // Helper function to parse Deal Value (handles both "JOD 10,000.00" and plain numbers)
+      const parseDealValue = (value: any): number => {
+        if (value === null || value === undefined) return 0;
+        const strValue = String(value).trim();
+
+        // If it starts with currency code, extract the number
+        if (strValue.startsWith('JOD')) {
+          // Remove "JOD" prefix and any commas, then parse
+          const numericPart = strValue.replace(/^JOD\s*/i, '').replace(/,/g, '');
+          return Number(numericPart) || 0;
+        }
+
+        // Otherwise, just parse as number
+        return Number(value) || 0;
+      };
+
+      // Filter out duplicate records (keep only those with "JOD" prefix in Deal Value)
+      const filteredData = (allData || []).filter(deal => {
+        const dealValue = String(deal['Deal Value'] || '').trim();
+        // Keep only records where Deal Value starts with "JOD" (currency formatted)
+        return dealValue.startsWith('JOD');
+      });
+
       // Convert numeric string fields to actual numbers
-      const normalizedData = (allData || []).map(deal => ({
+      const normalizedData = filteredData.map(deal => ({
         ...deal,
-        'Deal Value': Number(deal['Deal Value']) || 0,
+        'Deal Value': parseDealValue(deal['Deal Value']),
         'Probability (%)': Number(deal['Probability (%)']) || 0,
         'Gross Margin Value': deal['Gross Margin Value'] ? Number(deal['Gross Margin Value']) : undefined,
         'Gross Margin %': deal['Gross Margin %'] ? Number(deal['Gross Margin %']) : undefined,

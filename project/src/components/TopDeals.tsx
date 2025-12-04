@@ -79,19 +79,9 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         throw divisionError;
       }
 
-      // Filter out duplicates (keep only records with JOD prefix)
-      const filteredBusinessData = businessData?.filter(d => {
-        const dealValue = String(d['Deal Value'] || '').trim();
-        return dealValue.startsWith('JOD');
-      }) || [];
-
-      const filteredDivisionData = divisionData?.filter(d => {
-        const dealValue = String(d['Deal Value'] || '').trim();
-        return dealValue.startsWith('JOD');
-      }) || [];
-
-      const uniqueBusinesses = [...new Set(filteredBusinessData.map(d => d['Business Unit']))].sort();
-      const uniqueDivisions = [...new Set(filteredDivisionData.map(d => d['Division']))].sort();
+      // Extract unique values from data
+      const uniqueBusinesses = [...new Set((businessData || []).map(d => d['Business Unit']))].sort();
+      const uniqueDivisions = [...new Set((divisionData || []).map(d => d['Division']))].sort();
 
       setBusinessUnits(uniqueBusinesses);
       setAllDivisions(uniqueDivisions);
@@ -121,13 +111,8 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         return;
       }
 
-      // Filter out duplicates (keep only records with JOD prefix)
-      const filteredData = data?.filter(d => {
-        const dealValue = String(d['Deal Value'] || '').trim();
-        return dealValue.startsWith('JOD');
-      }) || [];
-
-      const uniqueDivisions = [...new Set(filteredData.map(d => d['Division']))].sort();
+      // Extract unique divisions
+      const uniqueDivisions = [...new Set((data || []).map(d => d['Division']))].sort();
       setFilteredDivisions(uniqueDivisions);
 
       if (selectedDivision !== 'all' && !uniqueDivisions.includes(selectedDivision)) {
@@ -177,12 +162,8 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         return Number(value) || 0;
       };
 
-      // Filter out duplicate records (keep only those with "JOD" prefix in Deal Value)
-      const filteredData = (allData || []).filter(deal => {
-        const dealValue = String(deal['Deal Value'] || '').trim();
-        // Keep only records where Deal Value starts with "JOD" (currency formatted)
-        return dealValue.startsWith('JOD');
-      });
+      // Use all data (Deal Value is stored as numeric in database)
+      const filteredData = allData || [];
 
       // Convert numeric string fields to actual numbers
       const normalizedData = filteredData.map(deal => ({

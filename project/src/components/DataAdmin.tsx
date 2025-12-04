@@ -64,10 +64,18 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
 
     try {
       const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data);
+      const workbook = XLSX.read(data, {
+        type: 'array',
+        codepage: 65001,
+        cellText: true,
+        cellDates: true
+      });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+        raw: false,
+        defval: ''
+      }) as any[];
 
       if (jsonData.length === 0) {
         throw new Error('The Excel file is empty');

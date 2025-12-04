@@ -115,7 +115,7 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
 
       if (uploadMode === 'replace') {
         const { data: deletedCount, error: deleteError } = await supabase
-          .rpc('delete_all_deals');
+          .rpc('delete_all_deals', {});
 
         if (deleteError) {
           throw new Error(`Failed to delete existing data: ${deleteError.message}`);

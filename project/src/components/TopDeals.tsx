@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Filter, DollarSign, Target, BarChart3, PieChart } from 'lucide-react';
+import { TrendingUp, Filter, DollarSign, Target, BarChart3, PieChart, Briefcase } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface TopDealsProps {
@@ -295,40 +295,50 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
           </div>
 
           <div className="mt-4 flex flex-wrap gap-3">
-            <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-              <Filter className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`} />
-              <select
-                value={selectedBusiness}
-                onChange={(e) => setSelectedBusiness(e.target.value)}
-                className={`flex-1 px-3 py-2 rounded-lg border transition-colors duration-200 ${
-                  isDarkMode
-                    ? 'bg-slate-700 border-slate-600 text-white'
-                    : 'bg-white border-slate-300 text-slate-900'
-                } focus:outline-none focus:ring-2 focus:ring-red-500`}
-              >
-                <option value="all">All Business Units</option>
-                {businessUnits.map(bu => (
-                  <option key={bu} value={bu}>{bu}</option>
-                ))}
-              </select>
+            <div className="flex flex-col gap-2 flex-1 min-w-[200px]">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                Business Unit
+              </label>
+              <div className="flex items-center gap-2">
+                <Filter className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`} />
+                <select
+                  value={selectedBusiness}
+                  onChange={(e) => setSelectedBusiness(e.target.value)}
+                  className={`flex-1 px-3 py-2 rounded-lg border transition-colors duration-200 ${
+                    isDarkMode
+                      ? 'bg-slate-700 border-slate-600 text-white'
+                      : 'bg-white border-slate-300 text-slate-900'
+                  } focus:outline-none focus:ring-2 focus:ring-red-500`}
+                >
+                  <option value="all">All Business Units</option>
+                  {businessUnits.map(bu => (
+                    <option key={bu} value={bu}>{bu}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-              <Filter className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`} />
-              <select
-                value={selectedDivision}
-                onChange={(e) => setSelectedDivision(e.target.value)}
-                className={`flex-1 px-3 py-2 rounded-lg border transition-colors duration-200 ${
-                  isDarkMode
-                    ? 'bg-slate-700 border-slate-600 text-white'
-                    : 'bg-white border-slate-300 text-slate-900'
-                } focus:outline-none focus:ring-2 focus:ring-red-500`}
-              >
-                <option value="all">All Divisions</option>
-                {filteredDivisions.map(div => (
-                  <option key={div} value={div}>{div}</option>
-                ))}
-              </select>
+            <div className="flex flex-col gap-2 flex-1 min-w-[200px]">
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                Division
+              </label>
+              <div className="flex items-center gap-2">
+                <Filter className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`} />
+                <select
+                  value={selectedDivision}
+                  onChange={(e) => setSelectedDivision(e.target.value)}
+                  className={`flex-1 px-3 py-2 rounded-lg border transition-colors duration-200 ${
+                    isDarkMode
+                      ? 'bg-slate-700 border-slate-600 text-white'
+                      : 'bg-white border-slate-300 text-slate-900'
+                  } focus:outline-none focus:ring-2 focus:ring-red-500`}
+                >
+                  <option value="all">All Divisions</option>
+                  {filteredDivisions.map(div => (
+                    <option key={div} value={div}>{div}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -371,7 +381,7 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
                   : 'bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200/50'
               }`}>
                 <div className="flex items-center justify-between mb-2">
-                  <DollarSign className={`w-5 h-5 ${
+                  <Briefcase className={`w-5 h-5 ${
                     isDarkMode ? 'text-blue-400' : 'text-blue-600'
                   }`} />
                   <span className={`text-xs font-medium ${

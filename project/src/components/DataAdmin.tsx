@@ -29,11 +29,34 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const [uploadedCount, setUploadedCount] = useState(0);
+  const [uploadMode, setUploadMode] = useState<'add' | 'replace'>('add');
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [existingRecordCount, setExistingRecordCount] = useState<number>(0);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (uploadMode === 'replace') {
+      const { count, error } = await supabase
+        .from('deals')
+        .select('*', { count: 'exact', head: true });
+
+      if (!error && count !== null) {
+        setExistingRecordCount(count);
+      }
+
+      setPendingFile(file);
+      setShowConfirmDialog(true);
+      event.target.value = '';
+    } else {
+      await processFileUpload(file);
+      event.target.value = '';
+    }
+  };
+
+  const processFileUpload = async (file: File) => {
     setUploading(true);
     setUploadStatus('idle');
     setMessage('');
@@ -82,6 +105,17 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
         };
       });
 
+      if (uploadMode === 'replace') {
+        const { error: deleteError } = await supabase
+          .from('deals')
+          .delete()
+          .neq('id', '00000000-0000-0000-0000-000000000000');
+
+        if (deleteError) {
+          throw new Error(`Failed to delete existing data: ${deleteError.message}`);
+        }
+      }
+
       const { data: insertedData, error } = await supabase
         .from('deals')
         .insert(deals);
@@ -92,15 +126,31 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
 
       setUploadedCount(deals.length);
       setUploadStatus('success');
-      setMessage(`Successfully uploaded ${deals.length} deals to the database.`);
+      setMessage(
+        uploadMode === 'replace'
+          ? `Successfully replaced all data. ${deals.length} deals uploaded.`
+          : `Successfully uploaded ${deals.length} deals to the database.`
+      );
     } catch (error: any) {
       console.error('Error uploading file:', error);
       setUploadStatus('error');
       setMessage(error.message || 'Failed to upload the file. Please check the format and try again.');
     } finally {
       setUploading(false);
-      event.target.value = '';
     }
+  };
+
+  const handleConfirmReplace = async () => {
+    setShowConfirmDialog(false);
+    if (pendingFile) {
+      await processFileUpload(pendingFile);
+      setPendingFile(null);
+    }
+  };
+
+  const handleCancelReplace = () => {
+    setShowConfirmDialog(false);
+    setPendingFile(null);
   };
 
   const parseExcelDate = (excelDate: any): string | null => {
@@ -151,6 +201,44 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
       </div>
 
       <div className="p-6">
+        <div className={`mb-6 p-4 rounded-xl border ${
+          isDarkMode ? 'bg-slate-700/30 border-slate-600' : 'bg-slate-50 border-slate-200'
+        }`}>
+          <h3 className={`font-semibold mb-3 ${
+            isDarkMode ? 'text-white' : 'text-slate-900'
+          }`}>
+            Upload Mode:
+          </h3>
+          <div className="flex gap-6">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="radio"
+                name="uploadMode"
+                value="add"
+                checked={uploadMode === 'add'}
+                onChange={(e) => setUploadMode(e.target.value as 'add' | 'replace')}
+                className="mr-2"
+              />
+              <span className={isDarkMode ? 'text-slate-300' : 'text-slate-700'}>
+                Add Data (keep existing records)
+              </span>
+            </label>
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="radio"
+                name="uploadMode"
+                value="replace"
+                checked={uploadMode === 'replace'}
+                onChange={(e) => setUploadMode(e.target.value as 'add' | 'replace')}
+                className="mr-2"
+              />
+              <span className={isDarkMode ? 'text-slate-300' : 'text-slate-700'}>
+                Replace All Data (delete all existing records)
+              </span>
+            </label>
+          </div>
+        </div>
+
         <div className={`mb-6 p-4 rounded-xl border ${
           isDarkMode ? 'bg-slate-700/30 border-slate-600' : 'bg-slate-50 border-slate-200'
         }`}>
@@ -253,12 +341,83 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
                 <li>Ensure your Excel file has the exact column headers listed above</li>
                 <li>Date fields should be in a valid date format</li>
                 <li>Numeric fields (Deal Value, Gross Margin, etc.) should contain numbers only</li>
-                <li>All data will be saved to the database once uploaded</li>
+                {uploadMode === 'add' && <li>New data will be added to existing records</li>}
+                {uploadMode === 'replace' && (
+                  <li className="font-bold text-red-500">
+                    WARNING: All existing data will be permanently deleted before uploading new data
+                  </li>
+                )}
               </ul>
             </div>
           </div>
         </div>
       </div>
+
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className={`max-w-md w-full mx-4 rounded-2xl shadow-2xl ${
+            isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white'
+          }`}>
+            <div className={`px-6 py-5 border-b ${
+              isDarkMode ? 'border-slate-700 bg-red-900/20' : 'border-slate-200 bg-red-50'
+            }`}>
+              <h3 className={`text-xl font-bold ${
+                isDarkMode ? 'text-red-400' : 'text-red-700'
+              }`}>
+                Confirm Data Replacement
+              </h3>
+            </div>
+            <div className="p-6">
+              <div className={`p-4 rounded-lg border mb-4 ${
+                isDarkMode ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'
+              }`}>
+                <p className={`font-semibold mb-2 ${
+                  isDarkMode ? 'text-red-300' : 'text-red-800'
+                }`}>
+                  WARNING: This action cannot be undone!
+                </p>
+                <p className={`text-sm ${
+                  isDarkMode ? 'text-red-200' : 'text-red-700'
+                }`}>
+                  You are about to permanently delete all existing deal data from the database.
+                </p>
+              </div>
+              <div className={`p-4 rounded-lg border mb-6 ${
+                isDarkMode ? 'bg-slate-700/30 border-slate-600' : 'bg-slate-50 border-slate-200'
+              }`}>
+                <div className={`text-sm ${
+                  isDarkMode ? 'text-slate-300' : 'text-slate-600'
+                }`}>
+                  <p className="mb-2">
+                    <span className="font-semibold">Existing records:</span> {existingRecordCount}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Action:</span> All records will be deleted and replaced with new data from the uploaded file
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCancelReplace}
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    isDarkMode
+                      ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                      : 'bg-slate-200 hover:bg-slate-300 text-slate-900'
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmReplace}
+                  className="flex-1 px-4 py-2 rounded-lg font-medium bg-red-600 hover:bg-red-700 text-white transition-colors"
+                >
+                  Confirm Delete & Replace
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

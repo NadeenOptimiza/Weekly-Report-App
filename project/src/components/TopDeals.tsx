@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Filter, DollarSign, Target, BarChart3, PieChart, Briefcase } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../hooks/useAuth';
 
 interface TopDealsProps {
   isDarkMode: boolean;
@@ -34,7 +33,6 @@ interface DashboardMetrics {
 }
 
 export function TopDeals({ isDarkMode }: TopDealsProps) {
-  const { isBUManager } = useAuth();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [allDeals, setAllDeals] = useState<Deal[]>([]);
   const [businessUnits, setBusinessUnits] = useState<string[]>([]);
@@ -489,8 +487,8 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         )}
       </div>
 
-      {/* Top 5 Deals Section - Only visible to BU Managers */}
-      {isBUManager && metrics && deals.length > 0 && (
+      {/* Top 5 Deals Section */}
+      {metrics && deals.length > 0 && (
         <div className={`rounded-2xl shadow-xl border transition-colors duration-300 ${
           isDarkMode ? 'bg-slate-800 border-slate-700/50' : 'bg-white border-slate-200/50'
         }`}>

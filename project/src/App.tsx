@@ -177,8 +177,7 @@ function App() {
                   <FileText className="w-4 h-4 mr-2" />
                   Submit Report
                 </button>
-                {(isBUManager || isDivisionManager) && (
-                  <>
+                {isBUManager && (
                   <button
                     onClick={() => setCurrentView('top-deals')}
                     className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
@@ -194,6 +193,8 @@ function App() {
                     <TrendingUp className="w-4 h-4 mr-2" />
                     Top 5 Deals
                   </button>
+                )}
+                {(isBUManager || isDivisionManager) && (
                   <button
                     onClick={() => setCurrentView('priority-issues')}
                     className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
@@ -209,7 +210,6 @@ function App() {
                     <AlertCircle className="w-4 h-4 mr-2" />
                     Priority Issues
                   </button>
-                  </>
                 )}
               </nav>
             </div>
@@ -413,8 +413,7 @@ function App() {
                   <FileText className="w-4 h-4 mr-3" />
                   Submit Report
                 </button>
-                {(isBUManager || isDivisionManager) && (
-                  <>
+                {isBUManager && (
                   <button
                     onClick={() => {
                       setCurrentView('top-deals');
@@ -433,6 +432,8 @@ function App() {
                     <TrendingUp className="w-4 h-4 mr-3" />
                     Top 5 Deals
                   </button>
+                )}
+                {(isBUManager || isDivisionManager) && (
                   <button
                     onClick={() => {
                       setCurrentView('priority-issues');
@@ -451,7 +452,6 @@ function App() {
                     <AlertCircle className="w-4 h-4 mr-3" />
                     Priority Issues
                   </button>
-                  </>
                 )}
               </div>
             </div>

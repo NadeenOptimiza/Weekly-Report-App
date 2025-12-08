@@ -2,6 +2,14 @@
 
 Your Weekly Reports Application is ready to be deployed! Follow one of the methods below.
 
+## Fixed Configuration (December 2025)
+
+The deployment configuration has been updated to correctly handle the nested project structure. The following files have been moved to the repository root:
+- `vercel.json` - Configured for nested project structure
+- `netlify.toml` - Configured with proper base directory
+
+The build process has been tested and is working correctly.
+
 ## Prerequisites
 
 Before deploying, ensure you have:
@@ -14,14 +22,16 @@ Before deploying, ensure you have:
 You'll need to add these environment variables to your hosting platform:
 
 ```
-VITE_SUPABASE_URL=https://0ec90b57d6e95fcbda19832f.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJib2x0IiwicmVmIjoiMGVjOTBiNTdkNmU5NWZjYmRhMTk4MzJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4ODE1NzQsImV4cCI6MTc1ODg4MTU3NH0.9I8-U0x86Ak8t2DGaIk0HfvTSLsAyzdnz-Nw00mMkKw
+VITE_SUPABASE_URL=https://vztyquoebiayrcggopuq.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6dHlxdW9lYmlheXJjZ2dvcHVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMzE3NzgsImV4cCI6MjA3ODYwNzc3OH0.Lh8si04CXg5gS_qx_bZ8BnOG2AKWS4KuLr6_2EtSmBQ
 VITE_OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 ---
 
 ## Option 1: Deploy to Vercel (Recommended - Fastest & Easiest)
+
+The `vercel.json` configuration file is already set up in the repository root with the correct settings for the nested project structure.
 
 ### Step-by-Step:
 
@@ -44,10 +54,10 @@ VITE_OPENAI_API_KEY=your_openai_api_key_here
    - Click "Import"
 
 4. **Configure Project Settings**
-   - **Framework Preset**: Vite
-   - **Root Directory**: `project`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
+   - Vercel should auto-detect the settings from `vercel.json`
+   - If needed, manually set:
+     - **Build Command**: `npm --prefix project run build`
+     - **Output Directory**: `project/dist`
 
 5. **Add Environment Variables**
    - In the "Environment Variables" section, add:
@@ -68,6 +78,8 @@ VITE_OPENAI_API_KEY=your_openai_api_key_here
 
 ## Option 2: Deploy to Netlify
 
+The `netlify.toml` configuration file is already set up in the repository root with the correct settings.
+
 ### Step-by-Step:
 
 1. **Push your code to GitHub** (if not already)
@@ -82,9 +94,11 @@ VITE_OPENAI_API_KEY=your_openai_api_key_here
    - Choose your repository
 
 4. **Configure Build Settings**
-   - **Base directory**: `project`
-   - **Build command**: `npm run build`
-   - **Publish directory**: `project/dist`
+   - Netlify should auto-detect the settings from `netlify.toml`
+   - The configuration is already set with:
+     - **Base directory**: `project`
+     - **Build command**: `npm run build`
+     - **Publish directory**: `dist` (relative to base)
 
 5. **Add Environment Variables**
    - Go to Site settings → Environment variables

@@ -50,19 +50,27 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
       const workbook = XLSX.read(data, {
         type: 'array',
         codepage: 65001,
-        cellText: true,
         cellDates: true
       });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-        raw: false,
+        raw: true,
         defval: ''
       }) as any[];
 
       if (jsonData.length === 0) {
         throw new Error('The Excel file is empty');
       }
+
+      const parseNumericValue = (value: any): number => {
+        if (value === null || value === undefined || value === '') return 0;
+        if (typeof value === 'number') return isNaN(value) ? 0 : value;
+        const strValue = String(value).trim();
+        const numericStr = strValue.replace(/[^0-9.-]/g, '');
+        const parsed = parseFloat(numericStr);
+        return isNaN(parsed) ? 0 : parsed;
+      };
 
       const deals = jsonData.map((row: any) => {
         const dealValue = row['Deal Value'];
@@ -71,13 +79,8 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
         const probability = row['Probability (%)'];
         const entity = row['Entity'] || '';
 
-        let parsedDealValue = typeof dealValue === 'string'
-          ? parseFloat(dealValue.replace(/[^0-9.-]/g, ''))
-          : parseFloat(dealValue) || 0;
-
-        let parsedGrossMarginValue = typeof grossMarginValue === 'string'
-          ? parseFloat(grossMarginValue.replace(/[^0-9.-]/g, ''))
-          : parseFloat(grossMarginValue) || 0;
+        let parsedDealValue = parseNumericValue(dealValue);
+        let parsedGrossMarginValue = parseNumericValue(grossMarginValue);
 
         if (entity.toUpperCase() === 'KSA') {
           parsedDealValue = parsedDealValue * 0.71;
@@ -92,13 +95,9 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
           'Business Unit': row['Business Unit'] || '',
           'Division': row['Division'] || '',
           'Deal Value': parsedDealValue,
-          'Gross Margin %': typeof grossMarginPercent === 'string'
-            ? parseFloat(grossMarginPercent.replace(/[^0-9.-]/g, ''))
-            : parseFloat(grossMarginPercent) || 0,
+          'Gross Margin %': parseNumericValue(grossMarginPercent),
           'Gross Margin Value': parsedGrossMarginValue,
-          'Probability (%)': typeof probability === 'string'
-            ? parseFloat(probability.replace(/[^0-9.-]/g, ''))
-            : parseFloat(probability) || 0,
+          'Probability (%)': parseNumericValue(probability),
           'Forecast Level': row['Forecast Level'] || '',
           'Stage': row['Stage'] || '',
           'Forecast Year': row['Forecast Year'] ? String(row['Forecast Year']) : '',

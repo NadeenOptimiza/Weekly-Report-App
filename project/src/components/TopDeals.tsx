@@ -189,20 +189,19 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         throw allError;
       }
 
-      // Helper function to parse Deal Value (handles both "JOD 10,000.00" and plain numbers)
+      // Helper function to parse Deal Value (handles both "JOD 10,000.00" and plain numbers with commas)
       const parseDealValue = (value: any): number => {
         if (value === null || value === undefined) return 0;
         const strValue = String(value).trim();
 
-        // If it starts with currency code, extract the number
-        if (strValue.startsWith('JOD')) {
-          // Remove "JOD" prefix and any commas, then parse
-          const numericPart = strValue.replace(/^JOD\s*/i, '').replace(/,/g, '');
-          return Number(numericPart) || 0;
-        }
+        // Remove "JOD" prefix if present
+        const withoutCurrency = strValue.replace(/^JOD\s*/i, '');
 
-        // Otherwise, just parse as number
-        return Number(value) || 0;
+        // Remove all commas (handles "130,000.00" format)
+        const withoutCommas = withoutCurrency.replace(/,/g, '');
+
+        // Parse as number
+        return Number(withoutCommas) || 0;
       };
 
       // Use all data (Deal Value is stored as numeric in database)

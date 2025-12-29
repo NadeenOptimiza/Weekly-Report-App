@@ -67,7 +67,10 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
         if (value === null || value === undefined || value === '') return 0;
         if (typeof value === 'number') return isNaN(value) ? 0 : value;
         const strValue = String(value).trim();
-        const numericStr = strValue.replace(/[^0-9.-]/g, '');
+        // Remove currency prefix (JOD, SAR, etc.) and spaces
+        const withoutCurrency = strValue.replace(/^[A-Z]{3}\s*/i, '');
+        // Remove commas and other non-numeric characters except dots and hyphens
+        const numericStr = withoutCurrency.replace(/,/g, '').replace(/[^0-9.-]/g, '');
         const parsed = parseFloat(numericStr);
         return isNaN(parsed) ? 0 : parsed;
       };

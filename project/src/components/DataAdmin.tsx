@@ -79,13 +79,8 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
         const probability = row['Probability (%)'];
         const entity = row['Entity'] || '';
 
-        let parsedDealValue = parseNumericValue(dealValue);
-        let parsedGrossMarginValue = parseNumericValue(grossMarginValue);
-
-        if (entity.toUpperCase() === 'KSA') {
-          parsedDealValue = parsedDealValue * 0.71;
-          parsedGrossMarginValue = parsedGrossMarginValue * 0.71;
-        }
+        const parsedDealValue = parseNumericValue(dealValue);
+        const parsedGrossMarginValue = parseNumericValue(grossMarginValue);
 
         return {
           'Opportunity Owner': row['Opportunity Owner'] || '',
@@ -278,7 +273,6 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
                 <li>Date fields should be in a valid date format</li>
                 <li>Numeric fields (Deal Value, Gross Margin, etc.) should contain numbers only</li>
                 <li>New data will be added to existing records</li>
-                <li>KSA deals: USD values are automatically converted to JOD (x0.71)</li>
               </ul>
             </div>
           </div>

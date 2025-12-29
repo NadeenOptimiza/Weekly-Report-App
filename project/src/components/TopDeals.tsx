@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { TrendingUp, Filter, DollarSign, Target, BarChart3, PieChart, Briefcase } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { TrendingUp, Filter, Target, BarChart3, PieChart, Briefcase, ChevronDown, X, MapPin } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface TopDealsProps {
@@ -18,6 +18,7 @@ interface Deal {
   'Gross Margin Value'?: number;
   'Gross Margin %'?: number;
   'Forecast Level'?: string;
+  'Entity'?: string;
 }
 
 interface DashboardMetrics {
@@ -38,10 +39,24 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
   const [businessUnits, setBusinessUnits] = useState<string[]>([]);
   const [allDivisions, setAllDivisions] = useState<string[]>([]);
   const [filteredDivisions, setFilteredDivisions] = useState<string[]>([]);
+  const [entities, setEntities] = useState<string[]>([]);
   const [selectedBusiness, setSelectedBusiness] = useState<string>('all');
-  const [selectedDivision, setSelectedDivision] = useState<string>('all');
+  const [selectedDivisions, setSelectedDivisions] = useState<string[]>([]);
+  const [selectedEntity, setSelectedEntity] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [divisionDropdownOpen, setDivisionDropdownOpen] = useState(false);
+  const divisionDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (divisionDropdownRef.current && !divisionDropdownRef.current.contains(event.target as Node)) {
+        setDivisionDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     fetchFilters();
@@ -53,7 +68,7 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
 
   useEffect(() => {
     fetchTopDeals();
-  }, [selectedBusiness, selectedDivision]);
+  }, [selectedBusiness, selectedDivisions, selectedEntity]);
 
   const fetchFilters = async () => {
     try {
@@ -79,13 +94,25 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         throw divisionError;
       }
 
-      // Extract unique values from data
+      const { data: entityData, error: entityError } = await supabase
+        .from('deals')
+        .select('"Entity"')
+        .not('"Entity"', 'is', null)
+        .neq('"Entity"', '');
+
+      if (entityError) {
+        console.error('Error fetching entities:', entityError);
+        throw entityError;
+      }
+
       const uniqueBusinesses = [...new Set((businessData || []).map(d => d['Business Unit']))].sort();
       const uniqueDivisions = [...new Set((divisionData || []).map(d => d['Division']))].sort();
+      const uniqueEntities = [...new Set((entityData || []).map(d => d['Entity']))].filter(Boolean).sort();
 
       setBusinessUnits(uniqueBusinesses);
       setAllDivisions(uniqueDivisions);
       setFilteredDivisions(uniqueDivisions);
+      setEntities(uniqueEntities);
     } catch (error) {
       console.error('Error fetching filters:', error);
     }
@@ -111,17 +138,29 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         return;
       }
 
-      // Extract unique divisions
       const uniqueDivisions = [...new Set((data || []).map(d => d['Division']))].sort();
       setFilteredDivisions(uniqueDivisions);
 
-      if (selectedDivision !== 'all' && !uniqueDivisions.includes(selectedDivision)) {
-        setSelectedDivision('all');
+      const validSelections = selectedDivisions.filter(d => uniqueDivisions.includes(d));
+      if (validSelections.length !== selectedDivisions.length) {
+        setSelectedDivisions(validSelections);
       }
     } catch (error) {
       console.error('Error filtering divisions:', error);
       setFilteredDivisions([]);
     }
+  };
+
+  const toggleDivision = (division: string) => {
+    setSelectedDivisions(prev =>
+      prev.includes(division)
+        ? prev.filter(d => d !== division)
+        : [...prev, division]
+    );
+  };
+
+  const clearDivisions = () => {
+    setSelectedDivisions([]);
   };
 
   const fetchTopDeals = async () => {
@@ -135,8 +174,12 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         query = query.eq('"Business Unit"', selectedBusiness);
       }
 
-      if (selectedDivision !== 'all') {
-        query = query.eq('"Division"', selectedDivision);
+      if (selectedDivisions.length > 0) {
+        query = query.in('"Division"', selectedDivisions);
+      }
+
+      if (selectedEntity !== 'all') {
+        query = query.eq('"Entity"', selectedEntity);
       }
 
       const { data: allData, error: allError } = await query;
@@ -318,24 +361,86 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
               </div>
             </div>
 
+            <div className="flex flex-col gap-2 flex-1 min-w-[200px]" ref={divisionDropdownRef}>
+              <label className={`text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                Division {selectedDivisions.length > 0 && `(${selectedDivisions.length})`}
+              </label>
+              <div className="relative">
+                <div className="flex items-center gap-2">
+                  <Filter className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`} />
+                  <button
+                    type="button"
+                    onClick={() => setDivisionDropdownOpen(!divisionDropdownOpen)}
+                    className={`flex-1 px-3 py-2 rounded-lg border transition-colors duration-200 text-left flex items-center justify-between ${
+                      isDarkMode
+                        ? 'bg-slate-700 border-slate-600 text-white'
+                        : 'bg-white border-slate-300 text-slate-900'
+                    } focus:outline-none focus:ring-2 focus:ring-red-500`}
+                  >
+                    <span className="truncate">
+                      {selectedDivisions.length === 0
+                        ? 'All Divisions'
+                        : selectedDivisions.length === 1
+                        ? selectedDivisions[0]
+                        : `${selectedDivisions.length} selected`}
+                    </span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${divisionDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {selectedDivisions.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={clearDivisions}
+                      className={`p-2 rounded-lg transition-colors ${
+                        isDarkMode ? 'hover:bg-slate-600 text-slate-400' : 'hover:bg-slate-100 text-slate-500'
+                      }`}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                {divisionDropdownOpen && (
+                  <div className={`absolute z-50 mt-1 w-full rounded-lg border shadow-lg max-h-60 overflow-auto ${
+                    isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-white border-slate-300'
+                  }`}>
+                    {filteredDivisions.map(div => (
+                      <label
+                        key={div}
+                        className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors ${
+                          isDarkMode ? 'hover:bg-slate-600' : 'hover:bg-slate-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedDivisions.includes(div)}
+                          onChange={() => toggleDivision(div)}
+                          className="w-4 h-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
+                        />
+                        <span className={`text-sm ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{div}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="flex flex-col gap-2 flex-1 min-w-[200px]">
               <label className={`text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                Division
+                Entity
               </label>
               <div className="flex items-center gap-2">
-                <Filter className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`} />
+                <MapPin className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`} />
                 <select
-                  value={selectedDivision}
-                  onChange={(e) => setSelectedDivision(e.target.value)}
+                  value={selectedEntity}
+                  onChange={(e) => setSelectedEntity(e.target.value)}
                   className={`flex-1 px-3 py-2 rounded-lg border transition-colors duration-200 ${
                     isDarkMode
                       ? 'bg-slate-700 border-slate-600 text-white'
                       : 'bg-white border-slate-300 text-slate-900'
                   } focus:outline-none focus:ring-2 focus:ring-red-500`}
                 >
-                  <option value="all">All Divisions</option>
-                  {filteredDivisions.map(div => (
-                    <option key={div} value={div}>{div}</option>
+                  <option value="all">All Entities</option>
+                  {entities.map(entity => (
+                    <option key={entity} value={entity}>{entity}</option>
                   ))}
                 </select>
               </div>
@@ -544,6 +649,16 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
                         }`}>
                           {deal['Stage']}
                         </span>
+                        {deal['Entity'] && (
+                          <span className={`px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1 ${
+                            deal['Entity'].toUpperCase() === 'KSA'
+                              ? isDarkMode ? 'bg-emerald-900/30 text-emerald-400' : 'bg-emerald-50 text-emerald-700'
+                              : isDarkMode ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-50 text-amber-700'
+                          }`}>
+                            <MapPin className="w-3 h-3" />
+                            {deal['Entity']}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="text-right ml-4">

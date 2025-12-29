@@ -22,6 +22,7 @@ interface DealRow {
   'Stage': string;
   'Forecast Year': string;
   'Close Date': string;
+  'Entity': string;
 }
 
 export function DataAdmin({ isDarkMode }: DataAdminProps) {
@@ -68,6 +69,20 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
         const grossMarginPercent = row['Gross Margin %'];
         const grossMarginValue = row['Gross Margin Value'];
         const probability = row['Probability (%)'];
+        const entity = row['Entity'] || '';
+
+        let parsedDealValue = typeof dealValue === 'string'
+          ? parseFloat(dealValue.replace(/[^0-9.-]/g, ''))
+          : parseFloat(dealValue) || 0;
+
+        let parsedGrossMarginValue = typeof grossMarginValue === 'string'
+          ? parseFloat(grossMarginValue.replace(/[^0-9.-]/g, ''))
+          : parseFloat(grossMarginValue) || 0;
+
+        if (entity.toUpperCase() === 'KSA') {
+          parsedDealValue = parsedDealValue * 0.71;
+          parsedGrossMarginValue = parsedGrossMarginValue * 0.71;
+        }
 
         return {
           'Opportunity Owner': row['Opportunity Owner'] || '',
@@ -76,15 +91,11 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
           'Account Name': row['Account Name'] || '',
           'Business Unit': row['Business Unit'] || '',
           'Division': row['Division'] || '',
-          'Deal Value': typeof dealValue === 'string'
-            ? parseFloat(dealValue.replace(/[^0-9.-]/g, ''))
-            : parseFloat(dealValue) || 0,
+          'Deal Value': parsedDealValue,
           'Gross Margin %': typeof grossMarginPercent === 'string'
             ? parseFloat(grossMarginPercent.replace(/[^0-9.-]/g, ''))
             : parseFloat(grossMarginPercent) || 0,
-          'Gross Margin Value': typeof grossMarginValue === 'string'
-            ? parseFloat(grossMarginValue.replace(/[^0-9.-]/g, ''))
-            : parseFloat(grossMarginValue) || 0,
+          'Gross Margin Value': parsedGrossMarginValue,
           'Probability (%)': typeof probability === 'string'
             ? parseFloat(probability.replace(/[^0-9.-]/g, ''))
             : parseFloat(probability) || 0,
@@ -92,6 +103,7 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
           'Stage': row['Stage'] || '',
           'Forecast Year': row['Forecast Year'] ? String(row['Forecast Year']) : '',
           'Close Date': row['Close Date'] ? parseExcelDate(row['Close Date']) : null,
+          'Entity': entity,
         };
       });
 
@@ -169,7 +181,7 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
           <h3 className={`font-semibold mb-2 ${
             isDarkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Required Excel Columns (14 total):
+            Required Excel Columns (15 total):
           </h3>
           <div className={`grid grid-cols-1 md:grid-cols-2 gap-2 text-sm ${
             isDarkMode ? 'text-slate-300' : 'text-slate-600'
@@ -188,6 +200,7 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
             <div>• Stage</div>
             <div>• Forecast Year</div>
             <div>• Close Date</div>
+            <div>• Entity (Jordan/KSA)</div>
           </div>
         </div>
 
@@ -266,6 +279,7 @@ export function DataAdmin({ isDarkMode }: DataAdminProps) {
                 <li>Date fields should be in a valid date format</li>
                 <li>Numeric fields (Deal Value, Gross Margin, etc.) should contain numbers only</li>
                 <li>New data will be added to existing records</li>
+                <li>KSA deals: USD values are automatically converted to JOD (x0.71)</li>
               </ul>
             </div>
           </div>

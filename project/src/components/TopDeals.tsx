@@ -190,8 +190,8 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
         throw allError;
       }
 
-      // Helper function to parse Deal Value (handles both "JOD 10,000.00" and plain numbers with commas)
-      const parseDealValue = (value: any): number => {
+      // Helper function to parse numeric values (handles "JOD 10,000.00", "10,000.00", and plain numbers)
+      const parseNumericValue = (value: any): number => {
         if (value === null || value === undefined) return 0;
         const strValue = String(value).trim();
 
@@ -211,10 +211,10 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
       // Convert numeric string fields to actual numbers
       const normalizedData = filteredData.map(deal => ({
         ...deal,
-        'Deal Value': parseDealValue(deal['Deal Value']),
+        'Deal Value': parseNumericValue(deal['Deal Value']),
         'Probability (%)': Number(deal['Probability (%)']) || 0,
-        'Gross Margin Value': deal['Gross Margin Value'] ? Number(deal['Gross Margin Value']) : undefined,
-        'Gross Margin %': deal['Gross Margin %'] ? Number(deal['Gross Margin %']) : undefined,
+        'Gross Margin Value': parseNumericValue(deal['Gross Margin Value']),
+        'Gross Margin %': parseNumericValue(deal['Gross Margin %']),
       }));
 
       setAllDeals(normalizedData);

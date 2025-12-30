@@ -45,6 +45,7 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
   const [selectedEntity, setSelectedEntity] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [marginMetrics, setMarginMetrics] = useState<DashboardMetrics | null>(null);
   const [divisionDropdownOpen, setDivisionDropdownOpen] = useState(false);
   const divisionDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -225,9 +226,11 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
       setDeals(top5);
 
       calculateMetrics(normalizedData);
+      calculateMarginMetrics(normalizedData);
     } catch (error: any) {
       console.error('Error fetching deals:', error);
       setMetrics(null);
+      setMarginMetrics(null);
       setDeals([]);
       setAllDeals([]);
     } finally {
@@ -283,6 +286,61 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
       .slice(0, 5);
 
     setMetrics({
+      totalPipelineValue,
+      weightedPipelineValue,
+      committedCount,
+      committedValue,
+      forecastedCount,
+      forecastedValue,
+      totalDeals: dealsData.length,
+      avgProbability,
+      topStages
+    });
+  };
+
+  const calculateMarginMetrics = (dealsData: Deal[]) => {
+    if (dealsData.length === 0) {
+      setMarginMetrics(null);
+      return;
+    }
+
+    const totalPipelineValue = dealsData.reduce((sum, deal) => sum + (deal['Gross Margin Value'] || 0), 0);
+    const weightedPipelineValue = dealsData.reduce((sum, deal) =>
+      sum + ((deal['Gross Margin Value'] || 0) * (deal['Probability (%)'] / 100)), 0
+    );
+
+    const committedDeals = dealsData.filter(deal => {
+      const level = (deal['Forecast Level'] || '').toLowerCase().trim();
+      return level === 'committed' || level === 'commit';
+    });
+    const committedCount = committedDeals.length;
+    const committedValue = committedDeals.reduce((sum, deal) => sum + (deal['Gross Margin Value'] || 0), 0);
+
+    const forecastedDeals = dealsData.filter(deal => {
+      const level = (deal['Forecast Level'] || '').toLowerCase().trim();
+      return level === 'forecasted' || level === 'forecast' || level === 'most likely';
+    });
+    const forecastedCount = forecastedDeals.length;
+    const forecastedValue = forecastedDeals.reduce((sum, deal) => sum + (deal['Gross Margin Value'] || 0), 0);
+
+    const avgProbability = dealsData.reduce((sum, deal) => sum + deal['Probability (%)'], 0) / dealsData.length;
+
+    const stageMap = new Map<string, { count: number; value: number }>();
+    dealsData.forEach(deal => {
+      const stage = deal['Stage'] || 'Unknown';
+      const existing = stageMap.get(stage) || { count: 0, value: 0 };
+      stageMap.set(stage, {
+        count: existing.count + 1,
+        value: existing.value + (deal['Gross Margin Value'] || 0)
+      });
+    });
+
+    const topStages = Array.from(stageMap.entries())
+      .map(([stage, data]) => ({ stage, ...data }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+
+    setMarginMetrics({
       totalPipelineValue,
       weightedPipelineValue,
       committedCount,
@@ -590,6 +648,151 @@ export function TopDeals({ isDarkMode }: TopDealsProps) {
           </>
         )}
       </div>
+
+      {/* Gross Margin Metrics Cards */}
+      {marginMetrics && (
+        <div className={`rounded-2xl shadow-xl border transition-colors duration-300 ${
+          isDarkMode ? 'bg-slate-800 border-slate-700/50' : 'bg-white border-slate-200/50'
+        }`}>
+          <div className={`px-6 py-5 border-b transition-colors duration-300 ${
+            isDarkMode ? 'border-slate-700' : 'border-slate-200'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className={`p-2 rounded-lg ${
+                  isDarkMode ? 'bg-red-900/30' : 'bg-red-50'
+                }`}>
+                  <TrendingUp className={`w-5 h-5 ${
+                    isDarkMode ? 'text-red-400' : 'text-red-600'
+                  }`} />
+                </div>
+                <div>
+                  <h2 className={`text-2xl font-bold transition-colors duration-300 ${
+                    isDarkMode ? 'text-white' : 'text-slate-900'
+                  }`}>
+                    Gross Margin Metrics
+                  </h2>
+                  <p className={`text-sm transition-colors duration-300 ${
+                    isDarkMode ? 'text-slate-400' : 'text-slate-600'
+                  }`}>
+                    Pipeline metrics based on gross margin value
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className={`p-4 rounded-xl border transition-all duration-200 ${
+              isDarkMode
+                ? 'bg-gradient-to-br from-blue-900/20 to-blue-800/30 border-blue-800/50'
+                : 'bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200/50'
+            }`}>
+              <div className="flex items-center justify-between mb-2">
+                <Briefcase className={`w-5 h-5 ${
+                  isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                }`} />
+                <span className={`text-xs font-medium ${
+                  isDarkMode ? 'text-blue-300' : 'text-blue-700'
+                }`}>
+                  Total Pipeline
+                </span>
+              </div>
+              <p className={`text-2xl font-bold ${
+                isDarkMode ? 'text-blue-300' : 'text-blue-700'
+              }`}>
+                {formatCurrency(marginMetrics.totalPipelineValue)}
+              </p>
+              <p className={`text-xs mt-1 ${
+                isDarkMode ? 'text-blue-200' : 'text-blue-600'
+              }`}>
+                {marginMetrics.totalDeals} deals
+              </p>
+            </div>
+
+            <div className={`p-4 rounded-xl border transition-all duration-200 ${
+              isDarkMode
+                ? 'bg-gradient-to-br from-emerald-900/20 to-emerald-800/30 border-emerald-800/50'
+                : 'bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-200/50'
+            }`}>
+              <div className="flex items-center justify-between mb-2">
+                <Target className={`w-5 h-5 ${
+                  isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
+                }`} />
+                <span className={`text-xs font-medium ${
+                  isDarkMode ? 'text-emerald-300' : 'text-emerald-700'
+                }`}>
+                  Weighted Pipeline
+                </span>
+              </div>
+              <p className={`text-2xl font-bold ${
+                isDarkMode ? 'text-emerald-300' : 'text-emerald-700'
+              }`}>
+                {formatCurrency(marginMetrics.weightedPipelineValue)}
+              </p>
+              <p className={`text-xs mt-1 ${
+                isDarkMode ? 'text-emerald-200' : 'text-emerald-600'
+              }`}>
+                {marginMetrics.avgProbability.toFixed(1)}% avg probability
+              </p>
+            </div>
+
+            <div className={`p-4 rounded-xl border transition-all duration-200 ${
+              isDarkMode
+                ? 'bg-gradient-to-br from-amber-900/20 to-amber-800/30 border-amber-800/50'
+                : 'bg-gradient-to-br from-amber-50 to-amber-100/50 border-amber-200/50'
+            }`}>
+              <div className="flex items-center justify-between mb-2">
+                <BarChart3 className={`w-5 h-5 ${
+                  isDarkMode ? 'text-amber-400' : 'text-amber-600'
+                }`} />
+                <span className={`text-xs font-medium ${
+                  isDarkMode ? 'text-amber-300' : 'text-amber-700'
+                }`}>
+                  Committed
+                </span>
+              </div>
+              <p className={`text-2xl font-bold ${
+                isDarkMode ? 'text-amber-300' : 'text-amber-700'
+              }`}>
+                {formatCurrency(marginMetrics.committedValue)}
+              </p>
+              <p className={`text-base font-semibold mt-1 ${
+                isDarkMode ? 'text-amber-200' : 'text-amber-600'
+              }`}>
+                {marginMetrics.committedCount} {marginMetrics.committedCount === 1 ? 'deal' : 'deals'}
+              </p>
+            </div>
+
+            <div className={`p-4 rounded-xl border transition-all duration-200 ${
+              isDarkMode
+                ? 'bg-gradient-to-br from-purple-900/20 to-purple-800/30 border-purple-800/50'
+                : 'bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200/50'
+            }`}>
+              <div className="flex items-center justify-between mb-2">
+                <PieChart className={`w-5 h-5 ${
+                  isDarkMode ? 'text-purple-400' : 'text-purple-600'
+                }`} />
+                <span className={`text-xs font-medium ${
+                  isDarkMode ? 'text-purple-300' : 'text-purple-700'
+                }`}>
+                  Forecasted
+                </span>
+              </div>
+              <p className={`text-2xl font-bold ${
+                isDarkMode ? 'text-purple-300' : 'text-purple-700'
+              }`}>
+                {formatCurrency(marginMetrics.forecastedValue)}
+              </p>
+              <p className={`text-base font-semibold mt-1 ${
+                isDarkMode ? 'text-purple-200' : 'text-purple-600'
+              }`}>
+                {marginMetrics.forecastedCount} {marginMetrics.forecastedCount === 1 ? 'deal' : 'deals'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Top 5 Deals Section */}
       {metrics && deals.length > 0 && (

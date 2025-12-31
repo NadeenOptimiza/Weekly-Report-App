@@ -38,10 +38,23 @@ export function customYearWeek(date: Date) {
   
   // Calculate the number of days between this Wednesday and the first Wednesday
   const daysDiff = Math.floor((adjustedDate.getTime() - firstWednesday.getTime()) / (24 * 60 * 60 * 1000));
-  
+
   // Calculate the week number
-  const week = Math.floor(daysDiff / 7) + 1;
-  
+  let week = Math.floor(daysDiff / 7) + 1;
+  let finalYear = year;
+
+  // Handle year boundary cases
+  if (week <= 0) {
+    // This week belongs to the previous year's last week
+    finalYear = year - 1;
+    week = 52;
+  } else if (week > 53) {
+    // Weeks beyond 53 belong to next year (53 is max for any year)
+    finalYear = year + 1;
+    week = 1;
+  }
+  // Note: Week 53 is valid for years where Jan 1 or Dec 31 is Wednesday
+
   console.log('customYearWeek calculation:', {
     inputDate: date.toISOString().split('T')[0],
     dayOfWeek,
@@ -49,10 +62,12 @@ export function customYearWeek(date: Date) {
     year,
     firstWednesday: firstWednesday.toISOString().split('T')[0],
     daysDiff,
-    week
+    calculatedWeek: Math.floor(daysDiff / 7) + 1,
+    finalYear,
+    finalWeek: week
   });
-  
-  return { year, week };
+
+  return { year: finalYear, week };
 }
 
 // Get the Sunday (start) of a specific custom week

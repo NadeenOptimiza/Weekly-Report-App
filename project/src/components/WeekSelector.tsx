@@ -8,6 +8,13 @@ interface WeekSelectorProps {
   isDarkMode: boolean;
 }
 
+// Helper function to check if a year has 53 weeks
+const yearHas53Weeks = (year: number): boolean => {
+  const jan1 = new Date(Date.UTC(year, 0, 1));
+  const dec31 = new Date(Date.UTC(year, 11, 31));
+  return jan1.getUTCDay() === 3 || dec31.getUTCDay() === 3;
+};
+
 // Generate weeks with rolling 52-week history + current week + next week
 const generateAvailableWeeks = () => {
   const weeks = [];
@@ -29,11 +36,17 @@ const generateAvailableWeeks = () => {
     // Handle year boundaries
     while (targetWeek < 1) {
       targetYear--;
-      targetWeek += 52; // Add 52 weeks from previous year
+      const maxWeeksPrevYear = yearHas53Weeks(targetYear) ? 53 : 52;
+      targetWeek += maxWeeksPrevYear;
     }
     while (targetWeek > 52) {
-      targetYear++;
-      targetWeek -= 52; // Subtract 52 weeks for next year
+      const maxWeeksCurrentYear = yearHas53Weeks(targetYear) ? 53 : 52;
+      if (targetWeek > maxWeeksCurrentYear) {
+        targetYear++;
+        targetWeek -= maxWeeksCurrentYear;
+      } else {
+        break;
+      }
     }
 
     weeksToGenerate.push({ year: targetYear, week: targetWeek, offset });

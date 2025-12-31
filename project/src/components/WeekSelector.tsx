@@ -8,51 +8,67 @@ interface WeekSelectorProps {
   isDarkMode: boolean;
 }
 
-// Generate weeks for the current year using custom Sunday-Thursday weeks
+// Generate weeks with rolling 52-week history + current week + next week
 const generateAvailableWeeks = () => {
   const weeks = [];
   const today = new Date();
   const currentWeekInfo = customYearWeek(today);
-  
-  // Generate weeks for 2025, starting from week 26 up to current week + 4 future weeks
-  const year = 2025;
-  const startWeek = 26;
-  
-  // Determine end week - include current week + 4 future weeks (locked) if we're in 2025
-  let endWeek = 52; // Default to end of year
-  if (currentWeekInfo.year === year) {
-    endWeek = Math.min(currentWeekInfo.week + 1, 52); // Current week + 1 future week (next week), but not beyond week 52
+
+  console.log('generateAvailableWeeks - Current week info:', currentWeekInfo);
+
+  // Calculate start point: 52 weeks ago from current week
+  // We need to go back in time and collect weeks from potentially multiple years
+  const weeksToGenerate = [];
+
+  // Start from current week and go forward 1 week (next week)
+  for (let offset = -52; offset <= 1; offset++) {
+    // Calculate the target week
+    let targetYear = currentWeekInfo.year;
+    let targetWeek = currentWeekInfo.week + offset;
+
+    // Handle year boundaries
+    while (targetWeek < 1) {
+      targetYear--;
+      targetWeek += 52; // Add 52 weeks from previous year
+    }
+    while (targetWeek > 52) {
+      targetYear++;
+      targetWeek -= 52; // Subtract 52 weeks for next year
+    }
+
+    weeksToGenerate.push({ year: targetYear, week: targetWeek, offset });
   }
-  
-  console.log('generateAvailableWeeks - Generating weeks from', startWeek, 'to', endWeek, 'for year', year);
-  
-  for (let weekNum = startWeek; weekNum <= endWeek; weekNum++) {
+
+  console.log('generateAvailableWeeks - Generating weeks from', weeksToGenerate[0], 'to', weeksToGenerate[weeksToGenerate.length - 1]);
+
+  for (const { year, week: weekNum, offset } of weeksToGenerate) {
     // Get the Sunday of this custom week
     const weekStart = getSundayOfCustomWeek(year, weekNum);
-    
+
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 4); // 5 days: Sunday to Thursday
-    
-    // Verify the week calculation  
+
+    // Verify the week calculation
     const verifyWeek = customYearWeek(weekStart);
-    console.log(`generateAvailableWeeks - Week ${weekNum}: Sunday=${weekStart.toISOString().split('T')[0]}, calculated custom week=${verifyWeek.week}`);
-    
+
     // If there's a mismatch, log a warning
-    if (verifyWeek.week !== weekNum) {
-      console.warn(`Week calculation mismatch! Expected week ${weekNum}, but Sunday ${weekStart.toISOString().split('T')[0]} calculates to week ${verifyWeek.week}`);
+    if (verifyWeek.week !== weekNum || verifyWeek.year !== year) {
+      console.warn(`Week calculation mismatch! Expected week ${weekNum} of ${year}, but Sunday ${weekStart.toISOString().split('T')[0]} calculates to week ${verifyWeek.week} of ${verifyWeek.year}`);
     }
-    
+
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
     const start = weekStart.toLocaleDateString('en-US', options);
     const end = weekEnd.toLocaleDateString('en-US', options);
-    
-    // Check if this week is in the future
-    const isFuture = (year > currentWeekInfo.year) || (year === currentWeekInfo.year && weekNum > currentWeekInfo.week);
-    const isCurrent = (year === currentWeekInfo.year && weekNum === currentWeekInfo.week);
-    const isNextWeek = (year === currentWeekInfo.year && weekNum === currentWeekInfo.week + 1);
-    const isPast = (year < currentWeekInfo.year) || (year === currentWeekInfo.year && weekNum < currentWeekInfo.week);
-    const isDisabled = (isFuture && !isNextWeek) || isPast; // Future weeks (except next week) and past weeks are disabled/locked
-    
+
+    // Determine week status based on offset from current week
+    const isCurrent = offset === 0;
+    const isNextWeek = offset === 1;
+    const isPast = offset < 0;
+    const isFuture = offset > 1;
+
+    // Past weeks are view-only (disabled), current and next week are enabled
+    const isDisabled = isPast || isFuture;
+
     weeks.push({
       value: weekStart.toISOString().split('T')[0],
       label: `${start} - ${end}, ${year}`,
@@ -65,7 +81,7 @@ const generateAvailableWeeks = () => {
       isPast
     });
   }
-  
+
   // Sort by date descending (most recent first)
   return weeks.sort((a, b) => b.value.localeCompare(a.value));
 };
@@ -228,7 +244,7 @@ export default function WeekSelector({ selectedWeek, onWeekChange, isDarkMode }:
         <div className={`mt-3 text-center text-xs ${
           isDarkMode ? 'text-slate-400' : 'text-slate-500'
         }`}>
-          <span>Week {currentWeekNumber} of 2025</span>
+          <span>Week {currentWeekNumber} of {currentWeek?.year || new Date().getFullYear()}</span>
           <span className="mx-2">•</span>
           <span>{availableWeeks.length} weeks available</span>
         </div>

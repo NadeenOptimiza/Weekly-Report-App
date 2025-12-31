@@ -11,7 +11,7 @@ interface CalendarWeekSelectorProps {
 
 const CalendarWeekSelector: React.FC<CalendarWeekSelectorProps> = ({ value, onChange, isDarkMode }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentYear, setCurrentYear] = useState(2025);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   // Get current week info for restrictions - use Monday as reference but allow Sunday unlock
   const currentWeekMonday = getCurrentWeek(); // This returns Monday of current business week
@@ -66,35 +66,57 @@ const CalendarWeekSelector: React.FC<CalendarWeekSelectorProps> = ({ value, onCh
     ? formatWeekPeriod(new Date(currentWeekMonday + 'T00:00:00Z'))
     : formatWeekPeriod(currentWeekStart);
 
-  // Generate weeks for 2025 using Monday-start ISO weeks
+  // Generate weeks with rolling 52-week history + current week + next week
   const generateWeeksForYear = (year: number) => {
     const weeks = [];
-    
-    // Start from week 26 (June) and go to current week + 4 future weeks
-    const startWeek = 26;
-    const currentWeekInfo = isoYearWeek(new Date(currentWeekMonday + 'T00:00:00Z'));
-    const endWeek = Math.min(currentWeekInfo.week + 4, 52);
-    
-    console.log('CalendarWeekSelector - Generating ISO weeks from', startWeek, 'to', endWeek);
-    
-    for (let weekNum = startWeek; weekNum <= endWeek; weekNum++) {
+
+    const today = new Date();
+    const currentWeekInfo = isoYearWeek(today);
+
+    console.log('CalendarWeekSelector - Current week info:', currentWeekInfo);
+
+    // Calculate start point: 52 weeks ago from current week
+    const weeksToGenerate = [];
+
+    // Start from 52 weeks ago and go to next week
+    for (let offset = -52; offset <= 1; offset++) {
+      // Calculate the target week
+      let targetYear = currentWeekInfo.year;
+      let targetWeek = currentWeekInfo.week + offset;
+
+      // Handle year boundaries
+      while (targetWeek < 1) {
+        targetYear--;
+        targetWeek += 52; // Add 52 weeks from previous year
+      }
+      while (targetWeek > 52) {
+        targetYear++;
+        targetWeek -= 52; // Subtract 52 weeks for next year
+      }
+
+      weeksToGenerate.push({ year: targetYear, week: targetWeek, offset });
+    }
+
+    console.log('CalendarWeekSelector - Generating weeks from', weeksToGenerate[0], 'to', weeksToGenerate[weeksToGenerate.length - 1]);
+
+    for (const { year: weekYear, week: weekNum, offset } of weeksToGenerate) {
       // Get the Monday of this ISO week
-      const weekStart = getMondayOfISOWeek(year, weekNum);
-      
+      const weekStart = getMondayOfISOWeek(weekYear, weekNum);
+
       const weekStartStr = weekStart.toISOString().split('T')[0];
-      
-      // Check if this week contains today's date
-      const today = new Date();
-      const todayWeekInfo = isoYearWeek(today);
-      const isCurrent = (year === todayWeekInfo.year && weekNum === todayWeekInfo.week);
-      
-      // Allow selection for current week and next week only
-      const isFuture = (year > todayWeekInfo.year) || (year === todayWeekInfo.year && weekNum > todayWeekInfo.week + 1);
-      const isPast = (year < todayWeekInfo.year) || (year === todayWeekInfo.year && weekNum < todayWeekInfo.week);
-      const isDisabled = isFuture || isPast;
-      
+
+      // Determine week status based on offset from current week
+      const isCurrent = offset === 0;
+      const isNextWeek = offset === 1;
+      const isPast = offset < 0;
+      const isFuture = offset > 1;
+
+      // Past weeks are view-only (disabled), current and next week are enabled
+      const isDisabled = isPast || isFuture;
+
       weeks.push({
         number: weekNum,
+        year: weekYear,
         startDate: weekStart,
         period: formatWeekPeriod(weekStart),
         isoString: weekStartStr,
@@ -104,7 +126,7 @@ const CalendarWeekSelector: React.FC<CalendarWeekSelectorProps> = ({ value, onCh
         isPast
       });
     }
-    
+
     return weeks;
   };
 
@@ -218,7 +240,7 @@ const CalendarWeekSelector: React.FC<CalendarWeekSelectorProps> = ({ value, onCh
               }`} />
               <div className="text-left">
                 <div className={`font-semibold ${currentWeek?.isCurrent ? 'text-blue-600' : ''}`}>
-                  Week {currentWeekInfoFromValue.weekNumber}, 2025
+                  Week {currentWeekInfoFromValue.weekNumber}, {currentWeekInfoFromValue.year}
                   {currentWeek?.isCurrent && ' (Current)'}
                 </div>
                 <div className={`text-sm transition-colors duration-300 ${
@@ -243,13 +265,13 @@ const CalendarWeekSelector: React.FC<CalendarWeekSelectorProps> = ({ value, onCh
                 }`}>
                   <span className={`font-semibold transition-colors duration-300 ${
                     isDarkMode ? 'text-white' : 'text-slate-900'
-                  }`}>2025 Custom Weeks (Sun-Thu)</span>
+                  }`}>Custom Weeks (Sun-Thu)</span>
                 </div>
                 
                 <div className="grid grid-cols-1 gap-1">
                   {weeks.map((week) => (
                     <button
-                      key={week.number}
+                      key={`${week.year}-${week.number}`}
                       type="button"
                       onClick={() => handleWeekSelect(week)}
                       disabled={week.isDisabled}
@@ -273,7 +295,7 @@ const CalendarWeekSelector: React.FC<CalendarWeekSelectorProps> = ({ value, onCh
                     >
                       <div className="flex justify-between items-center">
                         <span className="font-medium">
-                          Week {week.number}
+                          Week {week.number}, {week.year}
                           {week.isCurrent && ' (Current)'}
                           {week.isFuture && ' (Locked)'}
                           {week.isPast && ' (Past - Locked)'}

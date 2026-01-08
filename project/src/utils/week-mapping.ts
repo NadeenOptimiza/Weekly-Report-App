@@ -1,16 +1,54 @@
+// Helper function to determine how many weeks a year has (52 or 53)
+function getWeeksInYear(year: number): number {
+  // Get the last day of the year
+  const dec31 = new Date(Date.UTC(year, 11, 31));
+
+  // Calculate what week Dec 31 belongs to
+  const jan1 = new Date(Date.UTC(year, 0, 1));
+  const jan1Day = jan1.getUTCDay();
+
+  // Find the first Wednesday of the year
+  const firstWednesday = new Date(jan1);
+  if (jan1Day <= 3) {
+    firstWednesday.setUTCDate(jan1.getUTCDate() + (3 - jan1Day));
+  } else {
+    firstWednesday.setUTCDate(jan1.getUTCDate() + (3 - jan1Day + 7));
+  }
+
+  // Find Wednesday of the week containing Dec 31
+  const dec31Day = dec31.getUTCDay();
+  const dec31Wednesday = new Date(dec31);
+  if (dec31Day <= 4) {
+    dec31Wednesday.setUTCDate(dec31.getUTCDate() + (3 - dec31Day));
+  } else {
+    dec31Wednesday.setUTCDate(dec31.getUTCDate() + (3 - dec31Day + 7));
+  }
+
+  // If the Wednesday is in the next year, Dec 31 belongs to next year's week 1
+  if (dec31Wednesday.getUTCFullYear() > year) {
+    return 52;
+  }
+
+  // Calculate the week number for Dec 31
+  const daysDiff = Math.floor((dec31Wednesday.getTime() - firstWednesday.getTime()) / (24 * 60 * 60 * 1000));
+  const lastWeek = Math.floor(daysDiff / 7) + 1;
+
+  return lastWeek >= 53 ? 53 : 52;
+}
+
 // Custom week calculation for Sunday-Thursday business weeks
 export function customYearWeek(date: Date) {
   // Create a new UTC date to avoid modifying the original and timezone issues
   const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  
+
   // For Sunday-Thursday weeks, we need to adjust the calculation
   // Sunday = 0, Monday = 1, ..., Saturday = 6
   const dayOfWeek = d.getUTCDay(); // 0 = Sunday, 6 = Saturday
-  
+
   // For Sunday-Thursday weeks:
   // - If it's Sunday-Thursday (0-4), it belongs to the current week
   // - If it's Friday-Saturday (5-6), it belongs to the next week
-  
+
   // Adjust date to the reference day (Wednesday) for week calculation
   // Wednesday is in the middle of Sunday-Thursday week
   let adjustedDate = new Date(d);
@@ -21,12 +59,12 @@ export function customYearWeek(date: Date) {
     // Move to Wednesday of the next week
     adjustedDate.setUTCDate(d.getUTCDate() + (3 - dayOfWeek + 7));
   }
-  
+
   const year = adjustedDate.getUTCFullYear();
-  
+
   // Get January 1st of this year
   const jan1 = new Date(Date.UTC(year, 0, 1));
-  
+
   // Find the first Wednesday of the year (reference point for week 1)
   const jan1Day = jan1.getUTCDay(); // 0 = Sunday, 6 = Saturday
   const firstWednesday = new Date(jan1);
@@ -35,7 +73,7 @@ export function customYearWeek(date: Date) {
   } else { // Jan 1 is Thursday-Saturday
     firstWednesday.setUTCDate(jan1.getUTCDate() + (3 - jan1Day + 7));
   }
-  
+
   // Calculate the number of days between this Wednesday and the first Wednesday
   const daysDiff = Math.floor((adjustedDate.getTime() - firstWednesday.getTime()) / (24 * 60 * 60 * 1000));
 
@@ -47,13 +85,20 @@ export function customYearWeek(date: Date) {
   if (week <= 0) {
     // This week belongs to the previous year's last week
     finalYear = year - 1;
-    week = 52;
+    week = getWeeksInYear(finalYear);
   } else if (week > 53) {
-    // Weeks beyond 53 belong to next year (53 is max for any year)
+    // Weeks beyond 53 belong to next year
     finalYear = year + 1;
     week = 1;
+  } else if (week > 52) {
+    // Check if this year actually has 53 weeks
+    const maxWeeks = getWeeksInYear(year);
+    if (week > maxWeeks) {
+      // This week belongs to next year
+      finalYear = year + 1;
+      week = 1;
+    }
   }
-  // Note: Week 53 is valid for years where Jan 1 or Dec 31 is Wednesday
 
   console.log('customYearWeek calculation:', {
     inputDate: date.toISOString().split('T')[0],
@@ -63,6 +108,7 @@ export function customYearWeek(date: Date) {
     firstWednesday: firstWednesday.toISOString().split('T')[0],
     daysDiff,
     calculatedWeek: Math.floor(daysDiff / 7) + 1,
+    maxWeeksInYear: getWeeksInYear(year),
     finalYear,
     finalWeek: week
   });
